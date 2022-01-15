@@ -1,7 +1,7 @@
 import numpy as np
 
 class entry:
-  def __init__(self, ID: int, name: str, NAICE: list, EBIT: list, NetIncome: list, totAssets: list, cash: list, totLiabilities: list, curLiabilities: list, taxPayable: list, Depreciation: list):
+  def __init__(self, ID: int, name: str, NAICE: list, EBIT: list, NetIncome: list, totAssets: list, cash: list, totLiabilities: list, curLiabilities: list, taxPayable: list, Depreciation: list)-> None:
     self.ID = ID
     self.name = name
     self.NAICE = NAICE

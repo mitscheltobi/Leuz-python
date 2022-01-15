@@ -1,20 +1,21 @@
+from __future__ import print_function
 import csv
 import jsonpickle
 import _modules.listObject as listObject
-import numpy as np
 
-def yieldObject(reader: csv.DictReader, years: int) -> listObject.entry:
+def yieldObject(reader: csv.DictReader, years: int, numDropped: int) -> listObject.entry:
     # assumes fixed data length and positions
-    # if there are multiple NACE categorys, move to end
     for line in reader:
         if line[0] != "ID":
             # metadata
             id = int(line[0][:-1])
             name = line[1]
             try:
+                # case one classification
                 naice = [int(line[2])]
             except ValueError:
-                naice = [line[2].split("; ")]
+                # case more than one classification
+                naice = [int(x) for x in line[2].split("; ")]
 
             # look trough data for n.a. and wrap in list
             def refData(line):
@@ -27,8 +28,7 @@ def yieldObject(reader: csv.DictReader, years: int) -> listObject.entry:
                             #try to convert field to int
                             numbers.append(float(itm))
                         except ValueError:
-                            #if not possible leave as string
-                            # print(f"{name}: string value {itm} in data, dropping row...")
+                            #if not drop entire row
                             return None
                     oput.append(numbers)
                 return oput
@@ -45,20 +45,28 @@ def yieldObject(reader: csv.DictReader, years: int) -> listObject.entry:
                 Depreciation = data[7]
                 itm = listObject.entry(id, name, naice, ebit, NetInc, totAssets, cash, totLiabilities, curLiabilities, taxPayable, Depreciation)
                 yield itm
+            else:
+                numDropped += 1
+                yield numDropped
 
 
 def readFile(years):
     objlst= []
+    numDropped = 0
+
     #read csv data, generate python object and add to list
     with open('./_data/data.csv', newline='') as csvfile:
         rd = csv.reader(csvfile, delimiter=',', quotechar='|')
-        gen = yieldObject(rd, years)
+        gen = yieldObject(rd, years, numDropped)
         while True:
             try:
-                objlst.append(next(gen))
+                ret = next(gen)
+                if type(ret) is not int:
+                    objlst.append(ret)
+                else:
+                    numDropped = ret
             except StopIteration:
                 # generator yields nothing == end of list
-                # print(objlst)
                 break
 
     # write objects to json file
@@ -66,7 +74,11 @@ def readFile(years):
         ofile.write(jsonpickle.encode(objlst, unpicklable=True))
         ofile.close()
 
+    print(f"Dropped {numDropped} entrys becuase of faulty data...")
+    print(f"Successfully saved {len(objlst)} entrys as JSON...")
+
 if __name__ == '__main__':
+    ### TODO get command line args for input, output, specified years, verbosity
     years = 10
     readFile(years)
-    print("___DONE___")
+    print("__________DONE__________")
