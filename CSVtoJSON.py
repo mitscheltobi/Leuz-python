@@ -21,6 +21,7 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int) -> listObje
             def refData(line):
                 oput = []
                 for i in range(8):
+                    # leaves 2021 out; timeline from 2012-2020
                     dat = line[4+years*i:3+years*(i+1)]
                     numbers = []
                     for itm in dat:
