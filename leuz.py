@@ -1,22 +1,34 @@
+from __future__ import print_function
 from dataclasses import field
 import jsonpickle
 import numpy as np
 import _modules.listObject as listObject
 from collections import defaultdict
 
-def EM1(objList: list) -> float:
+def EM1(sortedSectors: dict) -> dict:
+    EM1byFirm = defaultdict(list)
+    # get EM1 ratio on firm level for each sector
+    for sectorID, entries in sortedSectors.items():
+        for entry in entries:
+            EM1byFirm[sectorID].append(entry.stdEBIT/entry.stdCFO)
+    EM1ratios = dict(EM1byFirm)
+
+    # get median on sector level
+    EM1bySector = defaultdict(float)
+    for sectorID, EM1s in EM1ratios.items():
+        EM1bySector[sectorID] = np.median(np.array(EM1s))
+
+    return dict(EM1bySector)
+
+def EM2(sortedSectors: dict) -> dict:
+        
+    return None
+
+def EM3(sortedSectors: dict) -> dict:
 
     return None
 
-def EM2(objList: list) -> float:
-
-    return None
-
-def EM3(objList: list) -> float:
-
-    return None
-
-def EM4(objList: list) -> float:
+def EM4(sortedSectors: dict) -> dict:
 
     return None
 
@@ -52,8 +64,8 @@ if __name__ == '__main__':
     
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
     sortedSectors, secEntryCount = sortSectors(objList)
-    print(secEntryCount)
-    resEM1 = EM1(objList)
-    resEM2 = EM2(objList)
-    resEM3 = EM3(objList)
-    resEM4 = EM4(objList)
+    resEM1 = EM1(sortedSectors)
+    print(resEM1)
+    resEM2 = EM2(sortedSectors)
+    resEM3 = EM3(sortedSectors)
+    resEM4 = EM4(sortedSectors)
