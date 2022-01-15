@@ -1,0 +1,3 @@
+*ignore pycache & xlsx
+/__pycache__
+.xlsx
