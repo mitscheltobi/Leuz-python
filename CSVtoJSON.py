@@ -1,11 +1,8 @@
-from __future__ import print_function
 import csv
-from email.policy import strict
-from xmlrpc.client import Boolean
 import jsonpickle
 import _modules.listObject as listObject
 
-def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: Boolean = False) -> listObject.entry:
+def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: bool = False) -> listObject.entry:
     # assumes fixed data length and positions
     for line in reader:
         if line[0] != "ID":

@@ -1,4 +1,3 @@
-import re
 import jsonpickle
 import numpy as np
 import _modules.listObject as listObject

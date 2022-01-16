@@ -1,0 +1,17 @@
+SEC EDGER Database entries
+
+Accepted: 921
+No Data: 4072
+Total: 4993
+
+Number of keys missing:
+{
+    'IncomeLossFromContinuingOperations': 3101,
+    'DepreciationDepletionAndAmortization': 1558,
+    'DeferredTaxLiabilities': 1658,
+    'NetIncomeLoss': 87,
+    'LiabilitiesCurrent': 1179,
+    'CashAndCashEquivalentsAtCarryingValue': 122,
+    'StockholdersEquity': 147,
+    'LiabilitiesAndStockholdersEquity': 2
+}
