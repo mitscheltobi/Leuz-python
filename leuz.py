@@ -1,3 +1,4 @@
+import re
 import jsonpickle
 import numpy as np
 import _modules.listObject as listObject
@@ -108,12 +109,16 @@ if __name__ == '__main__':
     # using 10% as threshhold for "small" profit and losses; default is 1%
     resEM4 = EM4(sortedSectors, 1)
 
+    results = defaultdict(dict)
     for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
-        print(f"""
--------------------
-{sectorID}:             sampleSize: {secEntries}
-EM1: {round(em1,3)}
-EM2: {round(em2,3)}
-EM3: {round(em3,3)}
-EM4: {round(em4,3)}
--------------------""")
+        results[sectorID] = {
+            'EM1': round(em1,3),
+            'EM2': round(em2,3),
+            'EM3': round(em3,3),
+            'EM4': round(em4,3),
+            'sampleSize': secEntries
+        }
+    results = dict(results)
+    for i in sorted(list(results.keys())):
+        print(f"{i}: {results[i]}")
+        
