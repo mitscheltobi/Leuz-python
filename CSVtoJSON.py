@@ -1,9 +1,11 @@
 from __future__ import print_function
 import csv
+from email.policy import strict
+from xmlrpc.client import Boolean
 import jsonpickle
 import _modules.listObject as listObject
 
-def yieldObject(reader: csv.DictReader, years: int, numDropped: int) -> listObject.entry:
+def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: Boolean = False) -> listObject.entry:
     # assumes fixed data length and positions
     for line in reader:
         if line[0] != "ID":
@@ -29,8 +31,14 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int) -> listObje
                             #try to convert field to int
                             numbers.append(float(itm))
                         except ValueError:
-                            #if not drop entire row
-                            return None
+                            if convertNaNToZero:
+                                if i == 6:
+                                    numbers.append(0.00)
+                                else:
+                                    #if not tax payable and not convertible drop entire row
+                                    return None
+                            else:
+                                return None
                     oput.append(numbers)
                 return oput
             
@@ -50,15 +58,13 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int) -> listObje
                 numDropped += 1
                 yield numDropped
 
-
-def readFile(years):
+def readFile(iFilePath: str, years: int, convertNaNToZero: Boolean = False) -> list:
     objlst= []
     numDropped = 0
-
     #read csv data, generate python object and add to list
-    with open('./_data/data.csv', newline='') as csvfile:
-        rd = csv.reader(csvfile, delimiter=',', quotechar='|')
-        gen = yieldObject(rd, years, numDropped)
+    with open(iFilePath, newline='') as csvfile:
+        readerObj = csv.reader(csvfile, delimiter=',', quotechar='|')
+        gen = yieldObject(readerObj, years, numDropped, convertNaNToZero)
         while True:
             try:
                 ret = next(gen)
@@ -69,17 +75,26 @@ def readFile(years):
             except StopIteration:
                 # generator yields nothing == end of list
                 break
-
-    # write objects to json file
-    with open('./_data/python_objects.json', 'w') as ofile:
-        ofile.write(jsonpickle.encode(objlst, unpicklable=True))
-        ofile.close()
-
     print(f"Dropped {numDropped} entrys becuase of faulty data...")
-    print(f"Successfully saved {len(objlst)} entrys as JSON...")
+    return objlst
+
+def writeToFile(oFilePath: str, data: list) -> Boolean:
+    try:
+        # write objects to json file
+        with open(oFilePath, 'w') as ofile:
+            ofile.write(jsonpickle.encode(data, unpicklable=True))
+            ofile.close()
+
+        print(f"Successfully saved {len(data)} entrys as JSON...")
+        return True
+    except:
+        return False
 
 if __name__ == '__main__':
     ### TODO get command line args for input, output, specified years, verbosity
     years = 10
-    readFile(years)
-    print("__________DONE__________")
+    returnedObjects = readFile(iFilePath='./_data/data.csv', years=years, convertNaNToZero=True)
+    if not writeToFile(oFilePath='./_data/python_objects.json', data=returnedObjects):
+        print("Error while writing to specified file!")
+    else:
+        print("__________DONE__________")

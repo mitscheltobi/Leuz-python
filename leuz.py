@@ -106,14 +106,14 @@ if __name__ == '__main__':
     resEM2 = EM2(sortedSectors)
     resEM3 = EM3(sortedSectors)
     # using 10% as threshhold for "small" profit and losses; default is 1%
-    resEM4 = EM4(sortedSectors, 10)
+    resEM4 = EM4(sortedSectors, 1)
 
-    for sectorID, em1,em2,em3,em4 in zip(resEM1.keys(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
+    for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
         print(f"""
 -------------------
-{sectorID}:
-EM1: {round(em1,2)}
-EM2: {round(em2,2)}
-EM3: {round(em3,2)}
-EM4: {round(em4,2)}
+{sectorID}:             sampleSize: {secEntries}
+EM1: {round(em1,3)}
+EM2: {round(em2,3)}
+EM3: {round(em3,3)}
+EM4: {round(em4,3)}
 -------------------""")
