@@ -1,12 +1,15 @@
 import csv
 import jsonpickle
 import _modules.listObject as listObject
+import _modules.statusBar as statusBar
+from argparse import ArgumentParser
+from collections.abc import Generator
 
-def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: bool = False) -> listObject.entry:
+def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: bool = False) -> Generator[listObject.entry]:
     # assumes fixed data length and positions
     for line in reader:
         if line[0] != "ID":
-            # metadata
+            # __metadata__
             id = int(line[0][:-1])
             name = line[1]
             try:
@@ -25,7 +28,7 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
                     numbers = []
                     for itm in dat:
                         try:
-                            #try to convert field to int
+                            # try to convert field to int
                             numbers.append(float(itm))
                         except ValueError:
                             if convertNaNToZero:
@@ -55,10 +58,12 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
                 numDropped += 1
                 yield numDropped
 
-def readFile(iFilePath: str, years: int, convertNaNToZero: bool = False) -> list:
+
+def readFile(iFilePath: str, years: int, convertNaNToZero: bool = False, bar: statusBar.statusBar = None) -> list:
     objlst= []
     numDropped = 0
-    #read csv data, generate python object and add to list
+    if bar: iter = 0
+    # read csv data, generate python object and add to list
     with open(iFilePath, newline='') as csvfile:
         readerObj = csv.reader(csvfile, delimiter=',', quotechar='|')
         gen = yieldObject(readerObj, years, numDropped, convertNaNToZero)
@@ -69,11 +74,23 @@ def readFile(iFilePath: str, years: int, convertNaNToZero: bool = False) -> list
                     objlst.append(ret)
                 else:
                     numDropped = ret
+                
+                if bar:
+                    iter += 1
+                    bar.update(iter)
             except StopIteration:
-                # generator yields nothing == end of list
+                # generator yields nothing; end of list
+                print(f"\nLoading data complete. Dropped {numDropped} entrys because of faulty data. Writing to file...")
                 break
-    print(f"Dropped {numDropped} entrys because of faulty data...")
+        csvfile.close()
     return objlst
+
+def getIterCount(iFilePath: str) -> int:
+    with open(iFilePath, newline='') as csvfile:
+        readerObj = csv.reader(csvfile, delimiter=',', quotechar='|')
+        i = sum(1 for _ in readerObj)
+        csvfile.close()
+    return i
 
 def writeToFile(oFilePath: str, data: list) -> bool:
     try:
@@ -81,17 +98,33 @@ def writeToFile(oFilePath: str, data: list) -> bool:
         with open(oFilePath, 'w') as ofile:
             ofile.write(jsonpickle.encode(data, unpicklable=True))
             ofile.close()
-
-        print(f"Successfully saved {len(data)} entrys as JSON...")
+        print(f"Successfully written {len(data)} JSON entrys to {oFilePath}.")
         return True
     except:
         return False
 
+def getArgs() -> tuple[str, str, int, bool, bool]:
+    parser = ArgumentParser(description='Parses csv data and converts it to JSON serialized python objects.')
+    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/data.csv', type=str, help="specify csv input file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/python_objects.json', type=str, help="specify json output file path. Default: %(default)s")
+    parser.add_argument("-y", "--years", dest="years", default=10, type=int, help="specify number of columns of each data category in csv file. Default: %(default)s")
+    parser.add_argument("-c", dest="convertNaNToZero", default=False, action='store_true', help="convert N/A values in 'taxPayable' to 0 (flag)")
+    parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="verbosity level (flag)")
+    args = vars(parser.parse_args())
+    return (args['iFilePath'], args['oFilePath'], args['years'], args['convertNaNToZero'], args['verbosity'])
+
 if __name__ == '__main__':
-    ### TODO get command line args for input, output, specified years, verbosity
-    years = 10
-    returnedObjects = readFile(iFilePath='./_data/data.csv', years=years, convertNaNToZero=True)
-    if not writeToFile(oFilePath='./_data/python_objects.json', data=returnedObjects):
-        print("Error while writing to specified file!")
+    # fetch commandline args
+    iFilePath, oFilePath, years, convertNaNToZero, verbosity = getArgs()
+
+    # read from file & parse data
+    if verbosity:
+        i = getIterCount(iFilePath)
+        lbar = statusBar.statusBar(i, size=100)
+        returnedObjects = readFile(iFilePath=iFilePath, years=years, convertNaNToZero=convertNaNToZero, bar=lbar)
     else:
-        print("__________DONE__________")
+        returnedObjects = readFile(iFilePath=iFilePath, years=years, convertNaNToZero=convertNaNToZero)
+    
+    # write to file
+    if not writeToFile(oFilePath=oFilePath, data=returnedObjects):
+        print("Error while writing to specified file!")
