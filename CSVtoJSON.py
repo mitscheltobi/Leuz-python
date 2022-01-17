@@ -10,7 +10,7 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
     for line in reader:
         if line[0] != "ID":
             # __metadata__
-            id = int(line[0][:-1])
+            id = int(line[0])
             name = line[1]
             try:
                 # case one classification
@@ -57,6 +57,7 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
             else:
                 numDropped += 1
                 yield numDropped
+        else: pass
 
 
 def readFile(iFilePath: str, years: int, convertNaNToZero: bool = False, bar: statusBar.statusBar = None) -> list:
