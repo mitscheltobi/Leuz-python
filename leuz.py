@@ -99,7 +99,7 @@ def sortSectors(objList: list) -> list:
 def writeToFile(oFilePath: str, data: list) -> bool:
     try:
         with open(oFilePath, 'w') as ofile:
-            ofile.write(json.dumps(data))
+            ofile.write(json.dumps(data, sort_keys=True, indent=4))
             ofile.close()
         print(f"Successfully written {len(data)} JSON entrys to {oFilePath}.")
         return True
@@ -111,9 +111,10 @@ def getArgs() -> tuple[str,str,bool]:
     parser = ArgumentParser(description='Calculates EM measures from serialized JSON data.')
     parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/python_objects.json', type=str, help="specify json input file path. Default: %(default)s")
     parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/leuz.json', type=str, help="specify json output file path. Default: %(default)s")
+    parser.add_argument("-p", dest="em4perc", default=1, type=int, help="specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="verbosity level (flag)")
     args = vars(parser.parse_args())
-    return (args['iFilePath'], args['oFilePath'], args['verbosity'])
+    return (args['iFilePath'], args['oFilePath'], args['em4perc'], args['verbosity'])
 
 
 if __name__ == '__main__':
@@ -121,9 +122,8 @@ if __name__ == '__main__':
     ### TODO get command line arguments for input file
     ### runtime optimization, doing everyting in one loop would be much faster if needed
     JSONfile = './_data/python_objects.json'
-    iFile, oFile, verbosity = getArgs()
+    iFile, oFile, em4perc, verbosity = getArgs()
     if verbosity: bar = statusBar.statusBar(5, 100)
-    
     objList = readJSON(iFile)
     if verbosity: bar.update(1)
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
@@ -134,8 +134,8 @@ if __name__ == '__main__':
     if verbosity: bar.update(3)
     resEM3 = EM3(sortedSectors)
     if verbosity: bar.update(4)
-    # using 10% as threshhold for "small" profit and losses; default is 1%
-    resEM4 = EM4(sortedSectors, 1)
+    # using 1% as threshhold for "small" profit and losses
+    resEM4 = EM4(sortedSectors, em4perc)
     results = defaultdict(dict)
 
     for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     results = dict(results)
     if verbosity:
         bar.update(5)
-        print("Done calculating. Results:")
+        print("\nDone calculating. Results:")
         for i in sorted(list(results.keys())):
             print(f"{i}: {results[i]}")
     
