@@ -1,8 +1,10 @@
-import jsonpickle
+import jsonpickle, json
 import numpy as np
 import _modules.listObject as listObject
+import _modules.statusBar as statusBar
 from collections import defaultdict
 import scipy.stats
+from argparse import ArgumentParser
 
 def EM1(sortedSectors: dict) -> dict:
     EM1byFirm = defaultdict(list)
@@ -94,21 +96,48 @@ def sortSectors(objList: list) -> list:
 
     return secList, dict(secEntryCount)
 
+def writeToFile(oFilePath: str, data: list) -> bool:
+    try:
+        with open(oFilePath, 'w') as ofile:
+            ofile.write(json.dumps(data))
+            ofile.close()
+        print(f"Successfully written {len(data)} JSON entrys to {oFilePath}.")
+        return True
+    except:
+        return False
+
+
+def getArgs() -> tuple[str,str,bool]:
+    parser = ArgumentParser(description='Calculates EM measures from serialized JSON data.')
+    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/python_objects.json', type=str, help="specify json input file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/leuz.json', type=str, help="specify json output file path. Default: %(default)s")
+    parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="verbosity level (flag)")
+    args = vars(parser.parse_args())
+    return (args['iFilePath'], args['oFilePath'], args['verbosity'])
+
+
 if __name__ == '__main__':
+
     ### TODO get command line arguments for input file
     ### runtime optimization, doing everyting in one loop would be much faster if needed
     JSONfile = './_data/python_objects.json'
-    objList = readJSON(JSONfile)
+    iFile, oFile, verbosity = getArgs()
+    if verbosity: bar = statusBar.statusBar(5, 100)
     
+    objList = readJSON(iFile)
+    if verbosity: bar.update(1)
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
     sortedSectors, secEntryCount = sortSectors(objList)
     resEM1 = EM1(sortedSectors)
+    if verbosity: bar.update(2)
     resEM2 = EM2(sortedSectors)
+    if verbosity: bar.update(3)
     resEM3 = EM3(sortedSectors)
+    if verbosity: bar.update(4)
     # using 10% as threshhold for "small" profit and losses; default is 1%
     resEM4 = EM4(sortedSectors, 1)
-
     results = defaultdict(dict)
+
     for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
         results[sectorID] = {
             'EM1': round(em1,3),
@@ -117,7 +146,13 @@ if __name__ == '__main__':
             'EM4': round(em4,3),
             'sampleSize': secEntries
         }
+    
     results = dict(results)
-    for i in sorted(list(results.keys())):
-        print(f"{i}: {results[i]}")
-        
+    if verbosity:
+        bar.update(5)
+        print("Done calculating. Results:")
+        for i in sorted(list(results.keys())):
+            print(f"{i}: {results[i]}")
+    
+    if not writeToFile(oFile, results):
+        print('Error while writing to file.')
