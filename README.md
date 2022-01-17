@@ -1,4 +1,4 @@
-### A Python Implementation of Leuz Measures
+# A Python Implementation of Leuz Measures
 Leuz, Christian & Nanda, Dhananjay & Wysocki, Peter. (2002). Earnings Management and Investor Protection: An International Comparison. Journal of Financial Economics. 69. 505-527. 10.1016/S0304-405X(03)00121-1. 
 https://www.researchgate.net/publication/222699072_Earnings_Management_and_Investor_Protection_An_International_Comparison
 
@@ -11,9 +11,9 @@ The structure must follow the guidelines of the [_data/data.csv](_data/data.csv)
 ## Usage
 To process data and calculate EM measures follow these steps:
   1. use [CSVtoJSON.py](CSVtoJSON.py) to convert your data to JSON serialized python objects. The script will overwrite [/_data/python_objects.json](_data/python_objects.json) with the generated objects.
-  # use `CSVtoJSON.py -h` for help on arguments and flags
+  #### use `CSVtoJSON.py -h` for help on arguments and flags
   3. use [leuz.py](leuz.py) to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal.
-  # use `leuz.py -h` for help on arguments and flags
+  #### use `leuz.py -h` for help on arguments and flags
   
 ## Dependencies
 Please use Python 3.6 or later to run scripts.
