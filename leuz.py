@@ -118,9 +118,10 @@ def getArgs() -> tuple[str,str,bool]:
 
 
 if __name__ == '__main__':
-
-    ### TODO get command line arguments for input file
+    ### TODO:
     ### runtime optimization, doing everyting in one loop would be much faster if needed
+    ### verbosity is a mess at the moment and could lead to significantly longer runtimes for big files
+
     JSONfile = './_data/python_objects.json'
     iFile, oFile, em4perc, verbosity = getArgs()
     if verbosity: bar = statusBar.statusBar(5, 100)
@@ -134,7 +135,8 @@ if __name__ == '__main__':
     if verbosity: bar.update(3)
     resEM3 = EM3(sortedSectors)
     if verbosity: bar.update(4)
-    # using 1% as threshhold for "small" profit and losses
+
+    # use supplied percentile denominator for 'small' p/l
     resEM4 = EM4(sortedSectors, em4perc)
     results = defaultdict(dict)
 
