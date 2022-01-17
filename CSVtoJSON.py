@@ -72,10 +72,10 @@ def readFile(iFilePath: str, years: int, convertNaNToZero: Boolean = False) -> l
             except StopIteration:
                 # generator yields nothing == end of list
                 break
-    print(f"Dropped {numDropped} entrys becuase of faulty data...")
+    print(f"Dropped {numDropped} entrys because of faulty data...")
     return objlst
 
-def writeToFile(oFilePath: str, data: list) -> Boolean:
+def writeToFile(oFilePath: str, data: list) -> bool:
     try:
         # write objects to json file
         with open(oFilePath, 'w') as ofile:
