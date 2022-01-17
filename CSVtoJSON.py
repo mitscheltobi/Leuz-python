@@ -6,6 +6,33 @@ from argparse import ArgumentParser
 from collections.abc import Generator
 
 def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: bool = False) -> Generator[listObject.entry]:
+    naicsClasses = {
+                    '11': 'Agriculture, Forestry, Fishing and Hunting',
+                    '21':	'Mining, Quarrying, and Oil and Gas Extraction',
+                    '22':	'Utilities',
+                    '23':	'Construction',
+                    '31':	'Manufacturing',
+                    '32':	'Manufacturing',
+                    '33':	'Manufacturing',
+                    '42':	'Wholesale Trade',
+                    '44':	'Retail Trade',
+                    '45':	'Retail Trade',
+                    '48':	'Transportation and Warehousing',
+                    '49':	'Transportation and Warehousing',
+                    '51':	'Information',
+                    '52':	'Finance and Insurance',
+                    '53':	'Real Estate and Rental and Leasing',
+                    '54':	'Professional, Scientific, and Technical Services',
+                    '55':	'Management of Companies and Enterprises',
+                    '56':	'Administrative and Support and Waste Management and Remediation Services',
+                    '61':	'Educational Services',
+                    '62':	'Health Care and Social Assistance',
+                    '71':	'Arts, Entertainment, and Recreation',
+                    '72':	'Accommodation and Food Services',
+                    '81':	'Other Services (except Public Administration)',
+                    '92':	'Public Administration'
+                }
+    
     # assumes fixed data length and positions
     for line in reader:
         if line[0] != "ID":
@@ -14,12 +41,11 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
             name = line[1]
             try:
                 # case one classification
-                naice = [int(line[2])]
+                naice = [naicsClasses[line[2][:2]]]
             except ValueError:
                 # case more than one classification
-                naice = [int(x) for x in line[2].split("; ")]
+                naice = [naicsClasses[x[:2]] for x in line[2].split("; ")]
 
-            # look trough data for n.a. and wrap in list
             def refData(line):
                 oput = []
                 for i in range(8):

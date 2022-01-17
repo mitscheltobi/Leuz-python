@@ -65,11 +65,13 @@ def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
     EM4bySector = dict(EM4bySector)
     for sectorID, sectorEarnings in EM4bySector.items():    
         # get sector specific Profit/Loss Threshhold
+        # this could cause runtime errors if there are no profits/losses in sample -> IndexError
+        # or if there are 0 losses above the threshhold -> ZeroDivisionError
         sectorProfitThreshhold = np.percentile(sectorEarnings['profits'], percentile)
         sectorLossThreshhold = np.percentile(sectorEarnings['losses'], 100-percentile)
+
         # calculate sector level EM4
         EM4bySector[sectorID] = len(sectorEarnings['profits'][sectorEarnings['profits'] < sectorProfitThreshhold]) / len(sectorEarnings['losses'][sectorEarnings['losses'] > sectorLossThreshhold])
-
     return EM4bySector
 
 
@@ -85,7 +87,7 @@ def sortSectors(objList: list) -> list:
     secList = defaultdict(list)
     for entry in objList:
         for x in entry.NAICE:
-            secList[str(x)[:2]].append(entry)
+            secList[x].append(entry)
     
     secList = dict(secList)
 
@@ -140,20 +142,22 @@ if __name__ == '__main__':
     resEM4 = EM4(sortedSectors, em4perc)
     results = defaultdict(dict)
 
+    sectors = ['Accommodation and Food Services', 'Health Care and Social Assistance', 'Professional, Scientific, and Technical Services', 'Real Estate and Rental and Leasing', 'Information', 'Manufacturing', 'Utilities', 'Mining, Quarrying, and Oil and Gas Extraction']
     for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
-        results[sectorID] = {
-            'EM1': round(em1,3),
-            'EM2': round(em2,3),
-            'EM3': round(em3,3),
-            'EM4': round(em4,3),
-            'sampleSize': secEntries
-        }
+        if sectorID in sectors:
+            results[sectorID] = {
+                'EM1': round(em1,3),
+                'EM2': round(em2,3),
+                'EM3': round(em3,3),
+                'EM4': round(em4,3),
+                'sampleSize': secEntries
+            }
     
     results = dict(results)
     if verbosity:
         bar.update(5)
         print("\nDone calculating. Results:")
-        for i in sorted(list(results.keys())):
+        for i in list(results.keys()):
             print(f"{i}: {results[i]}")
     
     if not writeToFile(oFile, results):
