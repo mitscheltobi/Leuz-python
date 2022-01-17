@@ -23,5 +23,5 @@ This project uses a number of built-in python modules as well as the following 3
 Please install all dependencies prior to running any script to avoid runtime errors.
 
 ## Further development:
-- commandline arguments for Data structure and custom behaviour
+- command line arguments for Data structure and custom behaviour
 - support for conversion of data from other Databases such as SEC EDGER
