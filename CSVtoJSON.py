@@ -55,7 +55,7 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
                 numDropped += 1
                 yield numDropped
 
-def readFile(iFilePath: str, years: int, convertNaNToZero: Boolean = False) -> list:
+def readFile(iFilePath: str, years: int, convertNaNToZero: bool = False) -> list:
     objlst= []
     numDropped = 0
     #read csv data, generate python object and add to list
