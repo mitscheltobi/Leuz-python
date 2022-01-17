@@ -1,3 +1,4 @@
-*ignore pycache & xlsx
+*ignore pycache, xlsx & test data
 /__pycache__
 .xlsx
+/_test
