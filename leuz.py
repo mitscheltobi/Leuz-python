@@ -141,7 +141,6 @@ if __name__ == '__main__':
     
     try:
         sectors = readJSON(sFile)
-        print(sectors)
     except:
         print("Sector json file not readable. Please have a look at '_data/sectors all.json' for reference.")
         raise
