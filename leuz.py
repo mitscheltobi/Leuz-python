@@ -14,10 +14,11 @@ def EM1(sortedSectors: dict) -> dict:
             EM1byFirm[sectorID].append(entry.stdEBIT/entry.stdCFO)
     EM1ratios = dict(EM1byFirm)
 
-    # get median on sector level
+    # get median on sector level for non NaN values
     EM1bySector = defaultdict(float)
     for sectorID, EM1s in EM1ratios.items():
-        EM1bySector[sectorID] = np.median(np.array(EM1s))
+        EM1sNumpy = np.array(EM1s)
+        EM1bySector[sectorID] = np.median(EM1sNumpy[~ np.isnan(EM1sNumpy)])
 
     return dict(EM1bySector)
 
@@ -26,15 +27,23 @@ def EM2(sortedSectors: dict) -> dict:
     # get company level deltaAccruals & deltaCFOs for each sector & add them together to get sector level timeline
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
-            EM2bySector[sectorID]['deltaAccrruals'] += np.array(entry.deltaAccruals)
-            EM2bySector[sectorID]['deltaCFO'] += np.array(entry.deltaCFO)
+            # if company has NaN value in timeline omit company dataset for the calculation
+            if not np.isnan(entry.deltaAccruals).any() and not np.isnan(entry.deltaCFO).any():
+                EM2bySector[sectorID]['deltaAccrruals'] += np.array(entry.deltaAccruals)
+                EM2bySector[sectorID]['deltaCFO'] += np.array(entry.deltaCFO)
 
     EM2bySector = dict(EM2bySector)
 
-    # calculate spearman correlation using scipy becuase there is no native numpy function
-    for sectorID, valueDicts in EM2bySector.items():
-        r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'], valueDicts['deltaCFO'])
-        EM2bySector[sectorID] = r
+    # calculate spearman correlation using scipy because there is no native numpy function
+    for sectorID, valueDicts in EM2bySector.items():#
+        try:
+            nanArrayDeltaAccruals = np.isnan(valueDicts['deltaAccrruals'])
+            nanArrayDeltaCFO = np.isnan(valueDicts['deltaCFO'])
+
+            r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'][~ nanArrayDeltaAccruals], valueDicts['deltaCFO'][~ nanArrayDeltaCFO])
+            EM2bySector[sectorID] = r
+        except ValueError:
+            EM2bySector[sectorID] = np.nan
 
     return EM2bySector
 
@@ -49,8 +58,9 @@ def EM3(sortedSectors: dict) -> dict:
 
     # get median on sector level
     EM3bySector = defaultdict(float)
-    for sectorID, EM1s in EM3ratios.items():
-        EM3bySector[sectorID] = np.median(np.array(EM1s))
+    for sectorID, EM3s in EM3ratios.items():
+        EM3sNumpy = np.array(EM3s)
+        EM3bySector[sectorID] = np.median(EM3sNumpy[~ np.isnan(EM3sNumpy)])
 
     return dict(EM3bySector)
 
@@ -146,10 +156,10 @@ if __name__ == '__main__':
     for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
         if sectorID in sectors:
             results[sectorID] = {
-                'EM1': round(em1,3),
-                'EM2': round(em2,3),
-                'EM3': round(em3,3),
-                'EM4': round(em4,3),
+                'EM1': round(em1, 3),
+                'EM2': round(em2, 3),
+                'EM3': round(em3, 3),
+                'EM4': round(em4, 3),
                 'sampleSize': secEntries
             }
     

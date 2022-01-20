@@ -4,6 +4,7 @@ import _modules.listObject as listObject
 import _modules.statusBar as statusBar
 from argparse import ArgumentParser
 from collections.abc import Generator
+import numpy as np
 
 def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: bool = False) -> Generator[listObject.entry]:
     naicsClasses = {
@@ -64,7 +65,7 @@ def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNT
                                     #if not tax payable and not convertible drop entire row
                                     return None
                             else:
-                                return None
+                                numbers.append(np.nan)
                     oput.append(numbers)
                 return oput
             
