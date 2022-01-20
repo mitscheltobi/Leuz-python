@@ -14,7 +14,7 @@ def EM1(sortedSectors: dict) -> dict:
             EM1byFirm[sectorID].append(entry.stdEBIT/entry.stdCFO)
     EM1ratios = dict(EM1byFirm)
 
-    # get median on sector level for non NaN values
+    # get median on sector level
     EM1bySector = defaultdict(float)
     for sectorID, EM1s in EM1ratios.items():
         EM1sNumpy = np.array(EM1s)
@@ -35,7 +35,7 @@ def EM2(sortedSectors: dict) -> dict:
     EM2bySector = dict(EM2bySector)
 
     # calculate spearman correlation using scipy because there is no native numpy function
-    for sectorID, valueDicts in EM2bySector.items():#
+    for sectorID, valueDicts in EM2bySector.items():
         try:
             nanArrayDeltaAccruals = np.isnan(valueDicts['deltaAccrruals'])
             nanArrayDeltaCFO = np.isnan(valueDicts['deltaCFO'])
@@ -50,13 +50,13 @@ def EM2(sortedSectors: dict) -> dict:
 def EM3(sortedSectors: dict) -> dict:
     # same as EM1 with abs(acc)/abs(CFO)
     EM3byFirm = defaultdict(list)
-    # get EM3 ratio on firm level for each sector
+    # get EM3 ratio on firm level per year for each sector
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
             EM3byFirm[sectorID].append(entry.absAccruals/entry.absCFO)
     EM3ratios = dict(EM3byFirm)
 
-    # get median on sector level
+    # get median of sector level year ratios
     EM3bySector = defaultdict(float)
     for sectorID, EM3s in EM3ratios.items():
         EM3sNumpy = np.array(EM3s)
@@ -88,9 +88,9 @@ def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
 def readJSON(JSONfile: str) -> list:
     f = open(JSONfile)
     JSONstring = f.read()
-    objList = jsonpickle.decode(JSONstring)
+    data = jsonpickle.decode(JSONstring)
     f.close()
-    return objList
+    return data
     
 def sortSectors(objList: list) -> list:
     # sort by sector and store in dict
@@ -121,12 +121,13 @@ def writeToFile(oFilePath: str, data: list) -> bool:
 
 def getArgs() -> tuple[str,str,bool]:
     parser = ArgumentParser(description='Calculates EM measures from serialized JSON data.')
-    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/python_objects.json', type=str, help="specify json input file path. Default: %(default)s")
-    parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/leuz.json', type=str, help="specify json output file path. Default: %(default)s")
-    parser.add_argument("-p", dest="em4perc", default=1, type=int, help="specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
-    parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="verbosity level (flag)")
+    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/python_objects.json', type=str, help="Specify json input file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/leuz.json', type=str, help="Specify json output file path. Default: %(default)s")
+    parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/sectors all.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (all sectors) %(default)s")
+    parser.add_argument("-p", dest="em4perc", default=1, type=int, help="Specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
+    parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
     args = vars(parser.parse_args())
-    return (args['iFilePath'], args['oFilePath'], args['em4perc'], args['verbosity'])
+    return (args['iFilePath'], args['oFilePath'], args['sFilePath'], args['em4perc'], args['verbosity'])
 
 
 if __name__ == '__main__':
@@ -134,10 +135,17 @@ if __name__ == '__main__':
     ### runtime optimization, doing everyting in one loop would be much faster if needed
     ### verbosity is a mess at the moment and could lead to significantly longer runtimes for big files
 
-    JSONfile = './_data/python_objects.json'
-    iFile, oFile, em4perc, verbosity = getArgs()
+    iFile, oFile, sFile, em4perc, verbosity = getArgs()
     if verbosity: bar = statusBar.statusBar(5, 100)
     objList = readJSON(iFile)
+    
+    try:
+        sectors = readJSON(sFile)
+        print(sectors)
+    except:
+        print("Sector json file not readable. Please have a look at '_data/sectors all.json' for reference.")
+        raise
+
     if verbosity: bar.update(1)
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
     sortedSectors, secEntryCount = sortSectors(objList)
@@ -152,7 +160,6 @@ if __name__ == '__main__':
     resEM4 = EM4(sortedSectors, em4perc)
     results = defaultdict(dict)
 
-    sectors = ['Accommodation and Food Services', 'Health Care and Social Assistance', 'Professional, Scientific, and Technical Services', 'Real Estate and Rental and Leasing', 'Information', 'Manufacturing', 'Utilities', 'Mining, Quarrying, and Oil and Gas Extraction']
     for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
         if sectorID in sectors:
             results[sectorID] = {

@@ -19,8 +19,8 @@ class entry:
     self.Accruals = (self.delta(self.totAssets) - self.delta(self.cash)) - (self.delta(self.totLiabilities) - self.delta(self.curLiabilities) - self.delta(self.taxPayable)) - self.Depreciation[:-1]
     self.CFO = self.EBIT[:-1] - self.Accruals
     # EM 1 - scaled by lagged total assets
-    self.stdEBIT = np.std(self.EBIT[:-1]/self.totAssets[1:])
-    self.stdCFO = np.std(self.CFO/self.totAssets[1:])
+    self.stdEBIT = np.nanstd(self.EBIT[:-1]/self.totAssets[1:])
+    self.stdCFO = np.nanstd(self.CFO/self.totAssets[1:])
     # EM 2 - scaled by lagged total assets; 2020-2014!!
     self.deltaAccruals = self.delta(self.Accruals)/self.totAssets[1:-1]
     self.deltaCFO = self.delta(self.CFO)/self.totAssets[1:-1]
@@ -34,7 +34,6 @@ class entry:
     self.losses = NetIncScaled[NetIncScaled < 0]
 
   def delta(self, values):
-    # returns delta values of
     return np.diff(values)*-1
 
   def __str__(self):
