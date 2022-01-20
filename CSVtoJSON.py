@@ -138,7 +138,7 @@ def getArgs() -> tuple[str, str, int, bool, bool]:
     parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/data.csv', type=str, help="Specify csv input file path. Default: %(default)s")
     parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/python_objects.json', type=str, help="Specify json output file path. Default: %(default)s")
     parser.add_argument("-y", "--years", dest="years", default=10, type=int, help="Specify number of columns of each data category in csv file. Default: %(default)s")
-    parser.add_argument("-n", dest="acceptNaN", default=False, action='store_false', help="(flag) Accept firm-year observations of NaN in dataset. If not set every firm with a firm-year observation of NaN will be completely excluded from any computations.")
+    parser.add_argument("-n", dest="acceptNaN", default=False, action='store_true', help="(flag) Accept firm-year observations of NaN in dataset. If not set every firm with a firm-year observation of NaN will be completely excluded from any computations.")
     parser.add_argument("-c", dest="convertNaNToZero", default=False, action='store_true', help="(flag) Convert NaN values in 'taxPayable' to 0. Only has an effect if -n is not set simultaneously.")
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
     args = vars(parser.parse_args())
