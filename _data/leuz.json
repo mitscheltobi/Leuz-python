@@ -6,34 +6,6 @@
         "EM4": 2.0,
         "sampleSize": 80
     },
-    "Administrative and Support and Waste Management and Remediation Services": {
-        "EM1": 0.446,
-        "EM2": -0.963,
-        "EM3": 1.081,
-        "EM4": 1.0,
-        "sampleSize": 126
-    },
-    "Agriculture, Forestry, Fishing and Hunting": {
-        "EM1": 0.963,
-        "EM2": -0.741,
-        "EM3": 2.045,
-        "EM4": 1.0,
-        "sampleSize": 28
-    },
-    "Construction": {
-        "EM1": 0.422,
-        "EM2": -0.97,
-        "EM3": 1.188,
-        "EM4": 1.5,
-        "sampleSize": 71
-    },
-    "Finance and Insurance": {
-        "EM1": 0.486,
-        "EM2": -0.019,
-        "EM3": 0.823,
-        "EM4": 3.0,
-        "sampleSize": 395
-    },
     "Health Care and Social Assistance": {
         "EM1": 0.488,
         "EM2": -0.87,
@@ -47,13 +19,6 @@
         "EM3": 0.974,
         "EM4": 0.6,
         "sampleSize": 457
-    },
-    "Management of Companies and Enterprises": {
-        "EM1": NaN,
-        "EM2": -0.966,
-        "EM3": NaN,
-        "EM4": 17.5,
-        "sampleSize": 584
     },
     "Manufacturing": {
         "EM1": 0.604,
@@ -83,32 +48,11 @@
         "EM4": 2.6,
         "sampleSize": 254
     },
-    "Retail Trade": {
-        "EM1": 0.775,
-        "EM2": -0.935,
-        "EM3": 1.026,
-        "EM4": 2.0,
-        "sampleSize": 181
-    },
-    "Transportation and Warehousing": {
-        "EM1": 0.485,
-        "EM2": -0.959,
-        "EM3": 1.147,
-        "EM4": 2.5,
-        "sampleSize": 88
-    },
     "Utilities": {
         "EM1": 0.269,
         "EM2": -0.599,
         "EM3": 2.102,
         "EM4": 2.5,
         "sampleSize": 88
-    },
-    "Wholesale Trade": {
-        "EM1": 0.554,
-        "EM2": -0.84,
-        "EM3": 1.104,
-        "EM4": 1.5,
-        "sampleSize": 149
     }
 }
