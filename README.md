@@ -5,23 +5,23 @@ https://www.researchgate.net/publication/222699072_Earnings_Management_and_Inves
 ## Application
 This application can be used to iterate over, process and consolidate financial data to calculate Leuz measures, a statistical approach of measuring earnings smoothing and discretion.
 
-Data can only be processed following a static format.
-The structure must follow the guidelines of the [_data/data.csv](_data/data.csv) file. Currently only csv files in the from provided by the ORBIS database are supported.
+Make sure to follow include all neccassary data for the calculation. To see relevant Orbis categories see [_data/_orbisRaw/Export default.xlsx](_data/_orbisRaw/Export default.xlsx) for reference. Headers do not need to be in order. Currently only xlsx files in the from provided by the Orbis database are supported.
 
 ## Usage
 To process data and calculate EM measures follow these steps:
-  1. use [CSVtoJSON.py](CSVtoJSON.py) to convert your data to JSON serialized python objects. The script will overwrite [/_data/python_objects.json](_data/python_objects.json) with the generated objects. Use `CSVtoJSON.py -h` for help on arguments and flags.
-  3. use [leuz.py](leuz.py) to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal. Use `leuz.py -h` for help on arguments and flags.
+  1. use [CSVtoJSON.py](CSVtoJSON.py) to convert your data to JSON serialized python objects. Use `CSVtoJSON.py -h` for help on arguments and flags. You can automatically save your file and execute the script that calculates the EM measures by adding the flag -c when executing the script. 
+  2. You can also execute [leuz.py](leuz.py) manually afterwards to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal and saved to [/_results](/results). Use `leuz.py -h` for help on arguments and flags.
   
 ## Dependencies
-Please use Python 3.6 or later to run scripts.
+Please use Python 3.10 or later to run scripts.
 This project uses a number of built-in python modules as well as the following 3rd party modules:
   1. jsonpickle // https://github.com/jsonpickle/jsonpickle
   2. numpy // https://github.com/numpy/numpy
   3. scipy // https://github.com/scipy/scipy
+  4. pandas // https://github.com/pandas-dev/pandas
 
 Please install all dependencies prior to running any script to avoid runtime errors.
 
 ## Further development:
-- command line arguments for Data structure and custom behaviour
+- command line arguments for custom data structure / different headers
 - support for conversion of data from other Databases such as SEC EDGER
