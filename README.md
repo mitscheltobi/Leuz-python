@@ -5,12 +5,12 @@ https://www.researchgate.net/publication/222699072_Earnings_Management_and_Inves
 ## Application
 This application can be used to iterate over, process and consolidate financial data to calculate Leuz measures, a statistical approach of measuring earnings smoothing and discretion.
 
-Make sure to follow include all neccassary data for the calculation. To see relevant Orbis categories see [_data/_orbisRaw/Export default.xlsx](_data/_orbisRaw/Export default.xlsx) for reference. Headers do not need to be in order. Currently only xlsx files in the from provided by the Orbis database are supported.
+Make sure to follow include all neccassary data for the calculation. To see relevant Orbis categories see [_data/_orbisRaw/Export default.xlsx](./_data/_orbisRaw/Export%20default.xlsx) for reference. Headers do not need to be in order. Currently only xlsx files in the from provided by the Orbis database are supported.
 
 ## Usage
 To process data and calculate EM measures follow these steps:
   1. use [CSVtoJSON.py](CSVtoJSON.py) to convert your data to JSON serialized python objects. Use `CSVtoJSON.py -h` for help on arguments and flags. You can automatically save your file and execute the script that calculates the EM measures by adding the flag -c when executing the script. 
-  2. You can also execute [leuz.py](leuz.py) manually afterwards to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal and saved to [/_results](./results). Use `leuz.py -h` for help on arguments and flags.
+  2. You can also execute [leuz.py](leuz.py) manually afterwards to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal and saved to [/_results](/_results). Use `leuz.py -h` for help on arguments and flags.
   
 ## Dependencies
 Please use Python 3.10 or later to run scripts.
