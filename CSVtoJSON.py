@@ -7,21 +7,21 @@ from argparse import ArgumentParser
 from collections.abc import Generator
 import numpy as np
 from pandas import read_excel, DataFrame
+from datetime import datetime
+from os import system
 
 class FileTypeError(Exception):
             pass
 
 def yieldObject(rowData: DataFrame, years: list[int, int], numDropped: int, NaN: str) -> listObject.entry:
     # This is so ugly I wanna be blind
-    naicsClasses = {'11': 'Agriculture, Forestry, Fishing and Hunting','21': 'Mining, Quarrying, and Oil and Gas Extraction','22': 'Utilities','23': 'Construction','31': 'Manufacturing','32': 'Manufacturing','33': 'Manufacturing','42': 'Wholesale Trade','44': 'Retail Trade','45': 'Retail Trade','48': 'Transportation and Warehousing','49': 'Transportation and Warehousing','51': 'Information','52': 'Finance and Insurance','53': 'Real Estate and Rental and Leasing','54': 'Professional, Scientific, and Technical Services','55': 'Management of Companies and Enterprises','56': 'Administrative and Support and Waste Management and Remediation Services','61': 'Educational Services','62': 'Health Care and Social Assistance','71': 'Arts, Entertainment, and Recreation','72': 'Accommodation and Food Services','81': 'Other Services (except Public Administration)','92': 'Public Administration'}
+    naicsClasses = {'na': 'No Category','11': 'Agriculture, Forestry, Fishing and Hunting','21': 'Mining, Quarrying, and Oil and Gas Extraction','22': 'Utilities','23': 'Construction','31': 'Manufacturing','32': 'Manufacturing','33': 'Manufacturing','42': 'Wholesale Trade','44': 'Retail Trade','45': 'Retail Trade','48': 'Transportation and Warehousing','49': 'Transportation and Warehousing','51': 'Information','52': 'Finance and Insurance','53': 'Real Estate and Rental and Leasing','54': 'Professional, Scientific, and Technical Services','55': 'Management of Companies and Enterprises','56': 'Administrative and Support and Waste Management and Remediation Services','61': 'Educational Services','62': 'Health Care and Social Assistance','71': 'Arts, Entertainment, and Recreation','72': 'Accommodation and Food Services','81': 'Other Services (except Public Administration)','92': 'Public Administration'}
 
-    # assumes fixed years length and positions
-    # __metadata__
     id = int(rowData[0])
     name = rowData['Company name Latin alphabet']
     try:
         # case one classification
-        naice = [naicsClasses[rowData['NAICS 2017, primary code(s)'][:2]]]
+        naice = [naicsClasses[str(rowData['NAICS 2017, primary code(s)'])[:2]]]
     except ValueError:
         # case more than one classification
         naice = [naicsClasses[x[:2]] for x in rowData['NAICS 2017, primary code(s)'].split("; ")]
@@ -91,15 +91,16 @@ def readFile(iFilePath: str, years: int, NaN: str, bar: statusBar.statusBar = No
         # read xlsx years, generate python object and add to list
         wb = read_excel(iFilePath, sheet_name=1, engine='openpyxl')
         for row in wb.iloc:
-            if type(res := yieldObject(row, [2021, 2012], numDropped, NaN)) != int:
+            if type(res := yieldObject(row, years, numDropped, NaN)) != int:
                 objlst.append(res)
             else:
                 numDropped+=1
+            iter += 1
+            bar.update(iter)
         print(f"\nLoading data complete. Dropped {numDropped} entrys because of faulty data. Writing to file...")
-        print(objlst[0])
         return objlst
     else:
-        raise FileTypeError("Filetype supplied is not supported. Please use .csv or .xlsx files only.")
+        raise FileTypeError("Filetype supplied is not supported. Please use .xlsx files only.")
 
 def getIterCount(iFilePath: str) -> int:
     if iFilePath[-4:].lower() == "xlsx":
@@ -121,11 +122,12 @@ def writeToFile(oFilePath: str, years: list) -> bool:
     except:
         return False
 
-def getArgs() -> tuple[str, str, int, bool, bool]:
+def getArgs():
     parser = ArgumentParser(description='Parses xlsx years and converts it to JSON serialized python objects.')
-    parser.add_argument("-i", "--ifile", dest="iFilePath", default='_data/_orbis_raw/Export 14_01_2022 19_01.xlsx', type=str, help="Specify xlsx input file path. Default: %(default)s")
-    parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/python_objects.json', type=str, help="Specify json output file path. Default: %(default)s")
-    parser.add_argument("-y", "--years", dest="years", default=[2021, 2012], type=list[int, int], help="Specify last and first year in dataset. Default: %(default)s")
+    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/_orbisRaw/Export default.xlsx', type=str, help="Specify xlsx input file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_data/_pythonObjects/run_{datetime.now().strftime("%Y%m%d%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
+    parser.add_argument("-ly", "--lastyear", dest="last_year", default=2021, type=int, help="Specify last year in dataset. Default: %(default)s")
+    parser.add_argument("-fy", "--firstyears", dest="first_year", default=2012, type=int, help="Specify first year in dataset. Default: %(default)s")
     parser.add_argument("-nan", dest="NaN", choices=['drop', 'accept', 'convert', 'perpetuate'], default='dropNaNdata', help="""
 Determines what to do with NaN values in years.
 
@@ -137,12 +139,13 @@ Choices:
     Default: %(default)s
     """)
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
+    parser.add_argument("-c", "--calc", dest="calc", default=False, action='store_true', help="(flag) Automatically calls leuz.py after execution to calculate measures from generated data.")
     args = vars(parser.parse_args())
-    return (args['iFilePath'], args['oFilePath'], args['years'], args['NaN'], args['verbosity'])
+    return (args['iFilePath'], args['oFilePath'], [args['last_year'], args['first_year']], args['NaN'], args['calc'], args['verbosity'])
 
 if __name__ == '__main__':
     # fetch commandrowData args
-    iFilePath, oFilePath, years, NaN, verbosity = getArgs()
+    iFilePath, oFilePath, years, NaN, calc, verbosity = getArgs()
 
     # read from file & parse years
     if verbosity:
@@ -155,3 +158,6 @@ if __name__ == '__main__':
     # write to file
     if not writeToFile(oFilePath=oFilePath, years=returnedObjects):
         print("Error while writing to specified file!")
+
+    if calc:
+        system(f"python ./leuz.py -i {oFilePath} -v")

@@ -1,3 +1,4 @@
+from datetime import datetime
 import jsonpickle, json
 import numpy as np
 import _modules.listObject as listObject
@@ -31,7 +32,6 @@ def EM2(sortedSectors: dict) -> dict:
             if not np.isnan(entry.deltaAccruals).any() and not np.isnan(entry.deltaCFO).any():
                 EM2bySector[sectorID]['deltaAccrruals'] += np.array(entry.deltaAccruals)
                 EM2bySector[sectorID]['deltaCFO'] += np.array(entry.deltaCFO)
-
     EM2bySector = dict(EM2bySector)
 
     # calculate spearman correlation using scipy because there is no native numpy function
@@ -71,14 +71,17 @@ def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
         for entry in entries:
             EM4bySector[sectorID]['profits'] = np.concatenate((entry.profits, EM4bySector[sectorID]['profits']), axis=None)
             EM4bySector[sectorID]['losses'] = np.concatenate((entry.losses, EM4bySector[sectorID]['losses']), axis=None)
-    
     EM4bySector = dict(EM4bySector)
     for sectorID, sectorEarnings in EM4bySector.items():    
         # get sector specific Profit/Loss Threshhold
         # this could cause runtime errors if there are no profits/losses in sample -> IndexError
         # or if there are 0 losses above the threshhold -> ZeroDivisionError
-        sectorProfitThreshhold = np.percentile(sectorEarnings['profits'], percentile)
-        sectorLossThreshhold = np.percentile(sectorEarnings['losses'], 100-percentile)
+        try:
+            sectorProfitThreshhold = np.percentile(sectorEarnings['profits'], percentile)
+            sectorLossThreshhold = np.percentile(sectorEarnings['losses'], 100-percentile)
+        except:
+            print(f"ERROR in EM4 calculation in sector: {entry.NAICE}. This could be due to little/no data in this sector in the dataset. You can drop the sector by not including it in your -s file.")
+            raise
 
         # calculate sector level EM4
         EM4bySector[sectorID] = len(sectorEarnings['profits'][sectorEarnings['profits'] < sectorProfitThreshhold]) / len(sectorEarnings['losses'][sectorEarnings['losses'] > sectorLossThreshhold])
@@ -92,12 +95,13 @@ def readJSON(JSONfile: str) -> list:
     f.close()
     return data
     
-def sortSectors(objList: list) -> list:
+def sortSectors(objList: list, sectors: list) -> list:
     # sort by sector and store in dict
     secList = defaultdict(list)
     for entry in objList:
         for x in entry.NAICE:
-            secList[x].append(entry)
+            if x in sectors:
+                secList[x].append(entry)
     
     secList = dict(secList)
 
@@ -118,17 +122,15 @@ def writeToFile(oFilePath: str, data: list) -> bool:
     except:
         return False
 
-
 def getArgs() -> tuple[str,str,bool]:
     parser = ArgumentParser(description='Calculates EM measures from serialized JSON data.')
-    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/python_objects.json', type=str, help="Specify json input file path. Default: %(default)s")
-    parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/leuz.json', type=str, help="Specify json output file path. Default: %(default)s")
-    parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/sectors all.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (all sectors) %(default)s")
+    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/company_objects.json', type=str, help="Specify json input file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_results/run_{datetime.now().strftime("%Y%m%d%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
+    parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/_misc/sectors_selection.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (all sectors) %(default)s")
     parser.add_argument("-p", dest="em4perc", default=1, type=int, help="Specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
     args = vars(parser.parse_args())
     return (args['iFilePath'], args['oFilePath'], args['sFilePath'], args['em4perc'], args['verbosity'])
-
 
 if __name__ == '__main__':
     ### TODO:
@@ -147,7 +149,7 @@ if __name__ == '__main__':
 
     if verbosity: bar.update(1)
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
-    sortedSectors, secEntryCount = sortSectors(objList)
+    sortedSectors, secEntryCount = sortSectors(objList, sectors)
     resEM1 = EM1(sortedSectors)
     if verbosity: bar.update(2)
     resEM2 = EM2(sortedSectors)
