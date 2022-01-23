@@ -1,161 +1,157 @@
-import csv
+from collections import defaultdict
+from email import header
 import jsonpickle
 import _modules.listObject as listObject
 import _modules.statusBar as statusBar
 from argparse import ArgumentParser
 from collections.abc import Generator
 import numpy as np
+from pandas import read_excel, DataFrame
 
-def yieldObject(reader: csv.DictReader, years: int, numDropped: int, convertNaNToZero: bool = False, acceptNaNvals: bool = True) -> Generator[listObject.entry]:
-    naicsClasses = {
-                    '11': 'Agriculture, Forestry, Fishing and Hunting',
-                    '21': 'Mining, Quarrying, and Oil and Gas Extraction',
-                    '22': 'Utilities',
-                    '23': 'Construction',
-                    '31': 'Manufacturing',
-                    '32': 'Manufacturing',
-                    '33': 'Manufacturing',
-                    '42': 'Wholesale Trade',
-                    '44': 'Retail Trade',
-                    '45': 'Retail Trade',
-                    '48': 'Transportation and Warehousing',
-                    '49': 'Transportation and Warehousing',
-                    '51': 'Information',
-                    '52': 'Finance and Insurance',
-                    '53': 'Real Estate and Rental and Leasing',
-                    '54': 'Professional, Scientific, and Technical Services',
-                    '55': 'Management of Companies and Enterprises',
-                    '56': 'Administrative and Support and Waste Management and Remediation Services',
-                    '61': 'Educational Services',
-                    '62': 'Health Care and Social Assistance',
-                    '71': 'Arts, Entertainment, and Recreation',
-                    '72': 'Accommodation and Food Services',
-                    '81': 'Other Services (except Public Administration)',
-                    '92': 'Public Administration'
-                }
-    
-    # assumes fixed data length and positions
-    for line in reader:
-        if line[0] != "ID":
-            # __metadata__
-            id = int(line[0])
-            name = line[1]
+class FileTypeError(Exception):
+            pass
+
+def yieldObject(rowData: DataFrame, years: list[int, int], numDropped: int, NaN: str) -> listObject.entry:
+    # This is so ugly I wanna be blind
+    naicsClasses = {'11': 'Agriculture, Forestry, Fishing and Hunting','21': 'Mining, Quarrying, and Oil and Gas Extraction','22': 'Utilities','23': 'Construction','31': 'Manufacturing','32': 'Manufacturing','33': 'Manufacturing','42': 'Wholesale Trade','44': 'Retail Trade','45': 'Retail Trade','48': 'Transportation and Warehousing','49': 'Transportation and Warehousing','51': 'Information','52': 'Finance and Insurance','53': 'Real Estate and Rental and Leasing','54': 'Professional, Scientific, and Technical Services','55': 'Management of Companies and Enterprises','56': 'Administrative and Support and Waste Management and Remediation Services','61': 'Educational Services','62': 'Health Care and Social Assistance','71': 'Arts, Entertainment, and Recreation','72': 'Accommodation and Food Services','81': 'Other Services (except Public Administration)','92': 'Public Administration'}
+
+    # assumes fixed years length and positions
+    # __metadata__
+    id = int(rowData[0])
+    name = rowData['Company name Latin alphabet']
+    try:
+        # case one classification
+        naice = [naicsClasses[rowData['NAICS 2017, primary code(s)'][:2]]]
+    except ValueError:
+        # case more than one classification
+        naice = [naicsClasses[x[:2]] for x in rowData['NAICS 2017, primary code(s)'].split("; ")]
+
+    def refData(rowData, timeframe, NaN, headers):
+        dataCategories = defaultdict(list)
+        for dataCategory in headers:
+            years = rowData[str(dataCategory + str(timeframe[0])) : str(dataCategory + str(timeframe[1]))]
             try:
-                # case one classification
-                naice = [naicsClasses[line[2][:2]]]
+                dataCategories[dataCategory]=[float(year) for year in years]
             except ValueError:
-                # case more than one classification
-                naice = [naicsClasses[x[:2]] for x in line[2].split("; ")]
+                # function for catching errors in list comprehension
+                def catch(convert, *args, **kwargs):
+                    try:
+                        return convert(*args, **kwargs)
+                    except Exception:
+                        return None
 
-            def refData(line):
-                oput = []
-                for i in range(8):
-                    # leaves 2021 out; timeline from 2012-2020
-                    dat = line[4+years*i:3+years*(i+1)]
-                    numbers = []
-                    for itm in dat:
-                        try:
-                            # try to convert number in field to float
-                            numbers.append(float(itm))
-                        except ValueError:
-                            if acceptNaNvals:
-                                numbers.append(np.nan)
-                            elif convertNaNToZero:
-                                if i == 6:
-                                    numbers.append(0.00)
-                                else:
-                                    return None
-                            else:
-                                return None
+                match NaN:
+                    case 'accept':
+                        dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else np.nan for year in years]
+                    case 'convert':
+                        if dataCategory != 'Income Tax Payable\nth USD ':
+                            dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else np.nan for year in years]
+                        else:
+                            dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else 0.00 for year in years]
+                    case 'perpetuate':
+                        if dataCategory != 'Income Tax Payable\nth USD ':
+                            dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else np.nan for year in years]
+                        else:
+                            # could be faster
+                            def findNextVal(list):
+                                for x in list:
+                                    try:
+                                        return float(x)
+                                    except ValueError:
+                                        continue
+                                return np.nan
+                            dataCategories[dataCategory]=[res if (res := catch(lambda: float(years[year]))) else findNextVal(years[year:]) for year in range(len(years))]
+                    case _:
+                        # drop entire row
+                        return None
+        return dataCategories
+    
+    headers = ['Operating P/L [=EBIT]\nth USD ', 'P/L for period [=Net income]\nth USD ', 'Total assets\nth USD ', 'Cash & cash equivalent\nth USD ', 'Total Liabilities and Debt\nth USD ', 'Total Current Liabilities\nth USD ', 'Income Tax Payable\nth USD ', 'Depreciation\nth USD ']
+    if (res:= refData(rowData[3:], years, NaN, headers)):
+        ebit = res[headers[0]]
+        NetInc = res[headers[1]]
+        totAssets = res[headers[2]]
+        cash = res[headers[3]]
+        totLiabilities = res[headers[4]]
+        curLiabilities = res[headers[5]]
+        taxPayable = res[headers[6]]
+        Depreciation = res[headers[7]]
+        itm = listObject.entry(id, name, naice, ebit, NetInc, totAssets, cash, totLiabilities, curLiabilities, taxPayable, Depreciation)
+        return itm
+    else:
+        numDropped += 1
+        return numDropped
 
-                    oput.append(numbers)
-                return oput
-            
-            data = refData(line)
-            if data:
-                ebit = data[0]
-                NetInc = data[1]
-                totAssets = data[2]
-                cash = data[3]
-                totLiabilities = data[4]
-                curLiabilities =data[5]
-                taxPayable = data[6]
-                Depreciation = data[7]
-                itm = listObject.entry(id, name, naice, ebit, NetInc, totAssets, cash, totLiabilities, curLiabilities, taxPayable, Depreciation)
-                yield itm
-            else:
-                numDropped += 1
-                yield numDropped
-        else: pass
-
-
-def readFile(iFilePath: str, years: int, convertNaNToZero: bool = False, acceptNaNvals: bool = True, bar: statusBar.statusBar = None) -> list:
+def readFile(iFilePath: str, years: int, NaN: str, bar: statusBar.statusBar = None) -> list:
     objlst= []
     numDropped = 0
     if bar: iter = 0
-    # read csv data, generate python object and add to list
-    with open(iFilePath, newline='') as csvfile:
-        readerObj = csv.reader(csvfile, delimiter=',', quotechar='|')
-        gen = yieldObject(readerObj, years, numDropped, convertNaNToZero, acceptNaNvals)
-        while True:
-            try:
-                ret = next(gen)
-                if type(ret) is not int:
-                    objlst.append(ret)
-                else:
-                    numDropped = ret
-                
-                if bar:
-                    iter += 1
-                    bar.update(iter)
-            except StopIteration:
-                # generator yields nothing; end of list
-                print(f"\nLoading data complete. Dropped {numDropped} entrys because of faulty data. Writing to file...")
-                break
-        csvfile.close()
-    return objlst
+
+    if iFilePath[-4:].lower() == "xlsx":
+        # read xlsx years, generate python object and add to list
+        wb = read_excel(iFilePath, sheet_name=1, engine='openpyxl')
+        for row in wb.iloc:
+            if type(res := yieldObject(row, [2021, 2012], numDropped, NaN)) != int:
+                objlst.append(res)
+            else:
+                numDropped+=1
+        print(f"\nLoading data complete. Dropped {numDropped} entrys because of faulty data. Writing to file...")
+        print(objlst[0])
+        return objlst
+    else:
+        raise FileTypeError("Filetype supplied is not supported. Please use .csv or .xlsx files only.")
 
 def getIterCount(iFilePath: str) -> int:
-    with open(iFilePath, newline='') as csvfile:
-        readerObj = csv.reader(csvfile, delimiter=',', quotechar='|')
-        i = sum(1 for _ in readerObj)
-        csvfile.close()
-    return i
+    if iFilePath[-4:].lower() == "xlsx":
+        try:
+            return len(read_excel(iFilePath, sheet_name=1, engine='openpyxl',na_values=['n.a.']))
+        except ValueError:
+            raise FileTypeError("The file you supplied does not appear to have two sheets. Please make sure your years is on the second sheet in the .xlsx file.")
+    else:
+        raise FileTypeError("Filetype supplied is not supported. Please use .xlsx files only.")
 
-def writeToFile(oFilePath: str, data: list) -> bool:
+def writeToFile(oFilePath: str, years: list) -> bool:
     try:
         # write objects to json file
         with open(oFilePath, 'w') as ofile:
-            ofile.write(jsonpickle.encode(data, unpicklable=True))
+            ofile.write(jsonpickle.encode(years, unpicklable=True))
             ofile.close()
-        print(f"Successfully written {len(data)} JSON entrys to {oFilePath}.")
+        print(f"Successfully written {len(years)} JSON entrys to {oFilePath}.")
         return True
     except:
         return False
 
 def getArgs() -> tuple[str, str, int, bool, bool]:
-    parser = ArgumentParser(description='Parses csv data and converts it to JSON serialized python objects.')
-    parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/data.csv', type=str, help="Specify csv input file path. Default: %(default)s")
+    parser = ArgumentParser(description='Parses xlsx years and converts it to JSON serialized python objects.')
+    parser.add_argument("-i", "--ifile", dest="iFilePath", default='_data/_orbis_raw/Export 14_01_2022 19_01.xlsx', type=str, help="Specify xlsx input file path. Default: %(default)s")
     parser.add_argument("-o", "--ofile", dest="oFilePath", default='./_data/python_objects.json', type=str, help="Specify json output file path. Default: %(default)s")
-    parser.add_argument("-y", "--years", dest="years", default=10, type=int, help="Specify number of columns of each data category in csv file. Default: %(default)s")
-    parser.add_argument("-n", dest="acceptNaN", default=False, action='store_true', help="(flag) Accept firm-year observations of NaN in dataset. If not set every firm with a firm-year observation of NaN will be completely excluded from any computations.")
-    parser.add_argument("-c", dest="convertNaNToZero", default=False, action='store_true', help="(flag) Convert NaN values in 'taxPayable' to 0. Only has an effect if -n is not set simultaneously.")
+    parser.add_argument("-y", "--years", dest="years", default=[2021, 2012], type=list[int, int], help="Specify last and first year in dataset. Default: %(default)s")
+    parser.add_argument("-nan", dest="NaN", choices=['drop', 'accept', 'convert', 'perpetuate'], default='dropNaNdata', help="""
+Determines what to do with NaN values in years.
+
+Choices:
+    drop: Don't accept firm-year observations of NaN in dataset. Drops all firm datasets which contain NaN values.
+    accept: Accept firm-year observations of NaN in dataset. NaN values will lower the quality of the EM computation.
+    convert: Convert NaN values in 'taxPayable' only to 0. Other NaN values will be accepted.
+    perpetuate: Assume NaN values in 'taxPayable' only to be equal to any previous year with years. Other NaN values will be accepted.
+    Default: %(default)s
+    """)
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
     args = vars(parser.parse_args())
-    return (args['iFilePath'], args['oFilePath'], args['years'], args['convertNaNToZero'], args['acceptNaN'], args['verbosity'])
+    return (args['iFilePath'], args['oFilePath'], args['years'], args['NaN'], args['verbosity'])
 
 if __name__ == '__main__':
-    # fetch commandline args
-    iFilePath, oFilePath, years, convertNaNToZero, acceptNaNvals, verbosity = getArgs()
+    # fetch commandrowData args
+    iFilePath, oFilePath, years, NaN, verbosity = getArgs()
 
-    # read from file & parse data
+    # read from file & parse years
     if verbosity:
         i = getIterCount(iFilePath)
         lbar = statusBar.statusBar(i, size=100)
-        returnedObjects = readFile(iFilePath=iFilePath, years=years, convertNaNToZero=convertNaNToZero, acceptNaNvals=acceptNaNvals, bar=lbar)
+        returnedObjects = readFile(iFilePath=iFilePath, years=years,NaN=NaN, bar=lbar)
     else:
-        returnedObjects = readFile(iFilePath=iFilePath, years=years, convertNaNToZero=convertNaNToZero)
+        returnedObjects = readFile(iFilePath=iFilePath, years=years, NaN=NaN)
     
     # write to file
-    if not writeToFile(oFilePath=oFilePath, data=returnedObjects):
+    if not writeToFile(oFilePath=oFilePath, years=returnedObjects):
         print("Error while writing to specified file!")
