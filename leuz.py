@@ -125,7 +125,7 @@ def writeToFile(oFilePath: str, data: list) -> bool:
 def getArgs() -> tuple[str,str,bool]:
     parser = ArgumentParser(description='Calculates EM measures from serialized JSON data.')
     parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/company_objects.json', type=str, help="Specify json input file path. Default: %(default)s")
-    parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_results/run_{datetime.now().strftime("%Y%m%d%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_results/run_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
     parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/_misc/sectors_selection.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (all sectors) %(default)s")
     parser.add_argument("-p", dest="em4perc", default=1, type=int, help="Specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")

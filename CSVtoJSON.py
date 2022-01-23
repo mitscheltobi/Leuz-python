@@ -125,7 +125,7 @@ def writeToFile(oFilePath: str, years: list) -> bool:
 def getArgs():
     parser = ArgumentParser(description='Parses xlsx years and converts it to JSON serialized python objects.')
     parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/_orbisRaw/Export default.xlsx', type=str, help="Specify xlsx input file path. Default: %(default)s")
-    parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_data/_pythonObjects/run_{datetime.now().strftime("%Y%m%d%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
+    parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_data/_pythonObjects/run_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
     parser.add_argument("-ly", "--lastyear", dest="last_year", default=2021, type=int, help="Specify last year in dataset. Default: %(default)s")
     parser.add_argument("-fy", "--firstyears", dest="first_year", default=2012, type=int, help="Specify first year in dataset. Default: %(default)s")
     parser.add_argument("-nan", dest="NaN", choices=['drop', 'accept', 'convert', 'perpetuate'], default='dropNaNdata', help="""
