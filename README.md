@@ -10,7 +10,7 @@ Make sure to follow include all neccassary data for the calculation. To see rele
 ## Usage
 To process data and calculate EM measures follow these steps:
   1. use [CSVtoJSON.py](CSVtoJSON.py) to convert your data to JSON serialized python objects. Use `CSVtoJSON.py -h` for help on arguments and flags. You can automatically save your file and execute the script that calculates the EM measures by adding the flag -c when executing the script. 
-  2. You can also execute [leuz.py](leuz.py) manually afterwards to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal and saved to [/_results](/results). Use `leuz.py -h` for help on arguments and flags.
+  2. You can also execute [leuz.py](leuz.py) manually afterwards to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal and saved to [/_results](./results). Use `leuz.py -h` for help on arguments and flags.
   
 ## Dependencies
 Please use Python 3.10 or later to run scripts.
