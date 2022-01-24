@@ -169,7 +169,7 @@ if __name__ == '__main__':
                 'EM2': round(em2, 3),
                 'EM3': round(em3, 3),
                 'EM4': round(em4, 3),
-                'sampleSize': secEntries
+                'sampleSizeCompanies': secEntries
             }
     
     results = dict(results)
