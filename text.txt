@@ -1,0 +1,11 @@
+2012
+Delta Acc [C1, C2, C3]
+            2   3   1
+Delta CFO [C1, C2, C3]
+            3   1   2
+
+2013
+Delta Acc [C1, C2, C3]
+            3   2   1
+Delta CFO [C1, C2, C3]
+            3   1   2

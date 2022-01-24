@@ -24,14 +24,14 @@ def EM1(sortedSectors: dict) -> dict:
     return dict(EM1bySector)
 
 def EM2(sortedSectors: dict) -> dict:
-    EM2bySector = defaultdict(lambda: defaultdict(lambda:np.empty(7)))
+    EM2bySector = defaultdict(lambda: defaultdict(lambda:np.empty(2)))
     # get company level deltaAccruals & deltaCFOs for each sector & add them together to get sector level timeline
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
             # if company has NaN value in timeline omit company dataset for the calculation
             if not np.isnan(entry.deltaAccruals).any() and not np.isnan(entry.deltaCFO).any():
-                EM2bySector[sectorID]['deltaAccrruals'] += np.array(entry.deltaAccruals)
-                EM2bySector[sectorID]['deltaCFO'] += np.array(entry.deltaCFO)
+                EM2bySector[sectorID]['deltaAccrruals'] = np.concatenate((EM2bySector[sectorID]['deltaAccrruals'], np.array(entry.deltaAccruals)), axis=None)
+                EM2bySector[sectorID]['deltaCFO'] = np.concatenate((EM2bySector[sectorID]['deltaCFO'], np.array(entry.deltaCFO)),axis=None)
     EM2bySector = dict(EM2bySector)
 
     # calculate spearman correlation using scipy because there is no native numpy function
@@ -42,7 +42,9 @@ def EM2(sortedSectors: dict) -> dict:
 
             r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'][~ nanArrayDeltaAccruals], valueDicts['deltaCFO'][~ nanArrayDeltaCFO])
             EM2bySector[sectorID] = r
+            # print(f"EM2 sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
         except ValueError:
+            print(f"Error in sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
             EM2bySector[sectorID] = np.nan
 
     return EM2bySector
