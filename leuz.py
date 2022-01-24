@@ -42,7 +42,6 @@ def EM2(sortedSectors: dict) -> dict:
 
             r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'][~ nanArrayDeltaAccruals], valueDicts['deltaCFO'][~ nanArrayDeltaCFO])
             EM2bySector[sectorID] = r
-            # print(f"EM2 sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
         except ValueError:
             print(f"EM2 Error in sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
             EM2bySector[sectorID] = np.nan
