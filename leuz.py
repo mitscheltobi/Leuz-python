@@ -44,7 +44,7 @@ def EM2(sortedSectors: dict) -> dict:
             EM2bySector[sectorID] = r
             # print(f"EM2 sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
         except ValueError:
-            print(f"Error in sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
+            print(f"EM2 Error in sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
             EM2bySector[sectorID] = np.nan
 
     return EM2bySector
