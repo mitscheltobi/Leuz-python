@@ -1,20 +1,22 @@
 import numpy as np
 
 class entry:
-  def __init__(self, ID: int, name: str, NAICE: list, EBIT: list, NetIncome: list, totAssets: list, cash: list, totLiabilities: list, curLiabilities: list, taxPayable: list, Depreciation: list)-> None:
+  def __init__(self, ID: int, name: str, NAICE: list, EBIT: list, NetIncome: list, totAssets: list, totCurAssets: list, cash: list, totLiabilities: list, curLiabilities: list, shortTermDebt: list, taxPayable: list, Depreciation: list)-> None:
     self.ID = ID
     self.name = name
     self.NAICE = NAICE
     self.EBIT = np.array(EBIT)
     self.NetIncome = np.array(NetIncome)
     self.totAssets = np.array(totAssets)
+    self.totCurAssets = np.array(totCurAssets)
     self.cash = np.array(cash)
     self.totLiabilities = np.array(totLiabilities)
     self.curLiabilities = np.array(curLiabilities)
+    self.shortTermDebt = np.array(shortTermDebt)
     self.taxPayable = np.array(taxPayable)
     self.Depreciation = np.array(Depreciation)
     # calculated attributes
-    self.Accruals = (self.delta(self.totAssets) - self.delta(self.cash)) - (self.delta(self.totLiabilities) - self.delta(self.curLiabilities) - self.delta(self.taxPayable)) - self.Depreciation[:-1]
+    self.Accruals = (self.delta(self.totCurAssets) - self.delta(self.cash)) - (self.delta(self.curLiabilities) - self.delta(self.shortTermDebt) - self.delta(self.taxPayable)) - self.Depreciation[:-1]
     self.CFO = self.EBIT[:-1] - self.Accruals
     # EM 1 - scaled by lagged total assets; timeframe = yearsSupplied - 1
     ebitScaled = self.EBIT[:-1]/self.totAssets[1:]
@@ -45,9 +47,11 @@ class entry:
   'EBIT': {self.EBIT},
   'NetIncome': {self.NetIncome},
   'totAssets': {self.totAssets},
+  'curAssets': {self.totCurAssets},
   'cash': {self.cash},
   'totLiabilities': {self.totLiabilities},
   'curLiabilities': {self.curLiabilities},
+  'shortTermDebt': {self.shortTermDebt},
   'taxPayable': {self.taxPayable},
   'Depreciation': {self.Depreciation},
   'Accruals': {self.Accruals},
@@ -61,7 +65,7 @@ class entry:
 }}"""
 
   def __repr__(self):
-      return f"""
+    return f"""
 {{
   'ID': {self.ID},
   'name': {self.name},
@@ -69,9 +73,11 @@ class entry:
   'EBIT': {self.EBIT},
   'NetIncome': {self.NetIncome},
   'totAssets': {self.totAssets},
+  'curAssets': {self.totCurAssets},
   'cash': {self.cash},
   'totLiabilities': {self.totLiabilities},
   'curLiabilities': {self.curLiabilities},
+  'shortTermDebt': {self.shortTermDebt},
   'taxPayable': {self.taxPayable},
   'Depreciation': {self.Depreciation},
   'Accruals': {self.Accruals},

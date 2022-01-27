@@ -20,7 +20,6 @@ def EM1(sortedSectors: dict) -> dict:
     for sectorID, EM1s in EM1ratios.items():
         EM1sNumpy = np.array(EM1s)
         EM1bySector[sectorID] = np.median(EM1sNumpy[~ np.isnan(EM1sNumpy)])
-
     return dict(EM1bySector)
 
 def EM2(sortedSectors: dict) -> dict:
@@ -37,11 +36,7 @@ def EM2(sortedSectors: dict) -> dict:
     # calculate spearman correlation using scipy because there is no native numpy function
     for sectorID, valueDicts in EM2bySector.items():
         try:
-            # nanArrayDeltaAccruals = np.isnan(valueDicts['deltaAccrruals'])
-            # nanArrayDeltaCFO = np.isnan(valueDicts['deltaCFO'])
-
-            # r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'][~ nanArrayDeltaAccruals], valueDicts['deltaCFO'][~ nanArrayDeltaCFO])
-            r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'], valueDicts['deltaCFO'])
+            r,p = scipy.stats.spearmanr(valueDicts['deltaAccrruals'], valueDicts['deltaCFO'])
             EM2bySector[sectorID] = r
         except ValueError:
             print(f"EM2 Error in sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
@@ -131,17 +126,17 @@ def getArgs() -> tuple[str,str,bool]:
     parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_results/run_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
     parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/_misc/sectors_selection.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (all sectors) %(default)s")
     parser.add_argument("-p", dest="em4perc", default=1, type=int, help="Specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
+    parser.add_argument("-em", dest="ems", choices=['all', '23', '1', '2', '3', '4'], default='all', help="Specify which EM measures you want to calculate. all: EM1-4; 23: EM2-3; 1: EM1; 2: EM2; 3: EM3, 4: EM4. Default: %(default)s")
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
     args = vars(parser.parse_args())
-    return (args['iFilePath'], args['oFilePath'], args['sFilePath'], args['em4perc'], args['verbosity'])
+    return (args['iFilePath'], args['oFilePath'], args['sFilePath'], args['em4perc'], args['verbosity'], args['ems'])
 
 if __name__ == '__main__':
     ### TODO:
     ### runtime optimization, doing everyting in one loop would be much faster if needed
     ### verbosity is a mess at the moment and could lead to significantly longer runtimes for big files
 
-    iFile, oFile, sFile, em4perc, verbosity = getArgs()
-    if verbosity: bar = statusBar.statusBar(5, 100)
+    iFile, oFile, sFile, em4perc, verbosity, ems = getArgs()
     objList = readJSON(iFile)
     
     try:
@@ -150,33 +145,75 @@ if __name__ == '__main__':
         print("Sector json file not readable. Please have a look at '_data/sectors all.json' for reference.")
         raise
 
-    if verbosity: bar.update(1)
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
     sortedSectors, secEntryCount = sortSectors(objList, sectors)
-    resEM1 = EM1(sortedSectors)
-    if verbosity: bar.update(2)
-    resEM2 = EM2(sortedSectors)
-    if verbosity: bar.update(3)
-    resEM3 = EM3(sortedSectors)
-    if verbosity: bar.update(4)
 
-    # use supplied percentile denominator for 'small' p/l
-    resEM4 = EM4(sortedSectors, em4perc)
-    results = defaultdict(dict)
-
-    for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
-        if sectorID in sectors:
-            results[sectorID] = {
-                'EM1': round(em1, 3),
-                'EM2': round(em2, 3),
-                'EM3': round(em3, 3),
-                'EM4': round(em4, 3),
-                'sampleSizeCompanies': secEntries
-            }
+    match ems:
+        case "all":
+            resEM1 = EM1(sortedSectors)
+            resEM2 = EM2(sortedSectors)
+            resEM3 = EM3(sortedSectors)
+            resEM4 = EM4(sortedSectors, em4perc)
+            results = defaultdict(dict)
+            for sectorID, secEntries, em1,em2,em3,em4 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values(), resEM2.values(), resEM3.values(), resEM4.values()):
+                if sectorID in sectors:
+                    results[sectorID] = {
+                        'EM1': round(em1, 3),
+                        'EM2': round(em2, 3),
+                        'EM3': round(em3, 3),
+                        'EM4': round(em4, 3),
+                        'sampleSizeCompanies': secEntries
+                    }
+        case "1":
+            resEM1 = EM1(sortedSectors)
+            results = defaultdict(dict)
+            for sectorID, secEntries, em1 in zip(resEM1.keys(), secEntryCount.values(), resEM1.values()):
+                if sectorID in sectors:
+                    results[sectorID] = {
+                        'EM1': round(em1, 3),
+                        'sampleSizeCompanies': secEntries
+                    }
+        case "2":
+            resEM2 = EM2(sortedSectors)
+            results = defaultdict(dict)
+            for sectorID, secEntries, em2 in zip(resEM2.keys(), secEntryCount.values(), resEM2.values()):
+                if sectorID in sectors:
+                    results[sectorID] = {
+                        'EM2': round(em2, 3),
+                        'sampleSizeCompanies': secEntries
+                    }
+        case "3":
+            resEM3 = EM3(sortedSectors)
+            results = defaultdict(dict)
+            for sectorID, secEntries, em3 in zip(resEM3.keys(), secEntryCount.values(), resEM3.values()):
+                if sectorID in sectors:
+                    results[sectorID] = {
+                        'EM3': round(em3, 3),
+                        'sampleSizeCompanies': secEntries
+                    }
+        case "4":
+            resEM4 = EM4(sortedSectors, em4perc)
+            results = defaultdict(dict)
+            for sectorID, secEntries, em4 in zip(resEM4.keys(), secEntryCount.values(), resEM4.values()):
+                if sectorID in sectors:
+                    results[sectorID] = {
+                        'EM4': round(em4, 3),
+                        'sampleSizeCompanies': secEntries
+                    }
+        case "23":
+            resEM2 = EM2(sortedSectors)
+            resEM3 = EM3(sortedSectors)
+            results = defaultdict(dict)
+            for sectorID,secEntries,em2,em3 in zip(resEM2.keys(), secEntryCount.values(), resEM2.values(), resEM3.values()):
+                if sectorID in sectors:
+                    results[sectorID] = {
+                        'EM2': round(em2, 3),
+                        'EM3': round(em3, 3),
+                        'sampleSizeCompanies': secEntries
+                    }
     
     results = dict(results)
     if verbosity:
-        bar.update(5)
         print("\nDone calculating. Results:")
         for i in list(results.keys()):
             print(f"{i}: {results[i]}")
