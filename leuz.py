@@ -24,23 +24,24 @@ def EM1(sortedSectors: dict) -> dict:
     return dict(EM1bySector)
 
 def EM2(sortedSectors: dict) -> dict:
-    EM2bySector = defaultdict(lambda: defaultdict(lambda:np.empty(2)))
+    EM2bySector = defaultdict(lambda: defaultdict(lambda:np.empty(0)))
     # get company level deltaAccruals & deltaCFOs for each sector & add them together to get sector level timeline
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
             # if company has NaN value in timeline omit company dataset for the calculation
             if not np.isnan(entry.deltaAccruals).any() and not np.isnan(entry.deltaCFO).any():
-                EM2bySector[sectorID]['deltaAccrruals'] = np.concatenate((EM2bySector[sectorID]['deltaAccrruals'], np.array(entry.deltaAccruals)), axis=None)
-                EM2bySector[sectorID]['deltaCFO'] = np.concatenate((EM2bySector[sectorID]['deltaCFO'], np.array(entry.deltaCFO)),axis=None)
+                EM2bySector[sectorID]['deltaAccrruals'] = np.concatenate((EM2bySector[sectorID]['deltaAccrruals'], entry.deltaAccruals), axis=None)
+                EM2bySector[sectorID]['deltaCFO'] = np.concatenate((EM2bySector[sectorID]['deltaCFO'], entry.deltaCFO), axis=None)
     EM2bySector = dict(EM2bySector)
 
     # calculate spearman correlation using scipy because there is no native numpy function
     for sectorID, valueDicts in EM2bySector.items():
         try:
-            nanArrayDeltaAccruals = np.isnan(valueDicts['deltaAccrruals'])
-            nanArrayDeltaCFO = np.isnan(valueDicts['deltaCFO'])
+            # nanArrayDeltaAccruals = np.isnan(valueDicts['deltaAccrruals'])
+            # nanArrayDeltaCFO = np.isnan(valueDicts['deltaCFO'])
 
-            r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'][~ nanArrayDeltaAccruals], valueDicts['deltaCFO'][~ nanArrayDeltaCFO])
+            # r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'][~ nanArrayDeltaAccruals], valueDicts['deltaCFO'][~ nanArrayDeltaCFO])
+            r,p = scipy.stats.pearsonr(valueDicts['deltaAccrruals'], valueDicts['deltaCFO'])
             EM2bySector[sectorID] = r
         except ValueError:
             print(f"EM2 Error in sector {sectorID}, {valueDicts['deltaAccrruals']}, {valueDicts['deltaCFO']}")
@@ -73,7 +74,7 @@ def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
             EM4bySector[sectorID]['profits'] = np.concatenate((entry.profits, EM4bySector[sectorID]['profits']), axis=None)
             EM4bySector[sectorID]['losses'] = np.concatenate((entry.losses, EM4bySector[sectorID]['losses']), axis=None)
     EM4bySector = dict(EM4bySector)
-    for sectorID, sectorEarnings in EM4bySector.items():    
+    for sectorID, sectorEarnings in EM4bySector.items():
         # get sector specific Profit/Loss Threshhold
         # this could cause runtime errors if there are no profits/losses in sample -> IndexError
         # or if there are 0 losses above the threshhold -> ZeroDivisionError
@@ -82,6 +83,7 @@ def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
             sectorLossThreshhold = np.percentile(sectorEarnings['losses'], 100-percentile)
         except:
             print(f"ERROR in EM4 calculation in sector: {entry.NAICE}. This could be due to little/no data in this sector in the dataset. You can drop the sector by not including it in your -s file.")
+            print(sectorEarnings['profits'], sectorEarnings['losses'])
             raise
 
         # calculate sector level EM4

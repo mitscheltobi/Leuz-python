@@ -44,23 +44,31 @@ def yieldObject(rowData: DataFrame, years: list[int, int], numDropped: int, NaN:
                     case 'accept':
                         dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else np.nan for year in years]
                     case 'convert':
-                        if dataCategory != 'Income Tax Payable\nth USD ':
+                        if dataCategory not in ['Income Tax Payable\nth USD ', 'Total Current Liabilities\nth USD ']:
                             dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else np.nan for year in years]
                         else:
                             dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else 0.00 for year in years]
                     case 'perpetuate':
-                        if dataCategory != 'Income Tax Payable\nth USD ':
+                        if dataCategory not in ['Income Tax Payable\nth USD ', 'Total Current Liabilities\nth USD ']:
                             dataCategories[dataCategory]=[res if (res:=catch(lambda: float(year))) else np.nan for year in years]
                         else:
                             # could be faster
-                            def findNextVal(list):
-                                for x in list:
+                            def findNextVal(list, year):
+                                # first try to look for a value in previous years
+                                for x in list[year:]:
                                     try:
                                         return float(x)
                                     except ValueError:
                                         continue
-                                return np.nan
-                            dataCategories[dataCategory]=[res if (res := catch(lambda: float(years[year]))) else findNextVal(years[year:]) for year in range(len(years))]
+                                # first try to look for a value in future years
+                                for x in list[:year][::-1]:
+                                    try:
+                                        return float(x)
+                                    except ValueError:
+                                        continue
+                                # if the entire timeline has no data return 0.00
+                                return 0.00
+                            dataCategories[dataCategory]=[res if (res := catch(lambda: float(years[year]))) else findNextVal(years, year) for year in range(len(years))]
                     case _:
                         # drop entire row
                         return None
