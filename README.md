@@ -5,7 +5,7 @@ https://www.researchgate.net/publication/222699072_Earnings_Management_and_Inves
 ## Application
 This application can be used to iterate over, process and consolidate financial data to calculate Leuz measures, a statistical approach of measuring earnings smoothing and discretion.
 
-Make sure to follow include all neccassary data for the calculation. To see relevant Orbis categories see [_data/_orbisRaw/Export default.xlsx](./_data/_orbisRaw/Export%20default.xlsx) for reference. Headers do not need to be in order. Currently only xlsx files in the from provided by the Orbis database are supported.
+Make sure to fully include all neccassary data for the calculation in one xlsx file. To see all relevant Orbis categories have a look at [_data/_orbisRaw/Export default.xlsx](./_data/_orbisRaw/Export%20default.xlsx) for reference. Headers other than ID, name and NAICS category do not need to be in order. At the moment you cannot have custom/different header descriptions other than those in the [example file](./_data/_orbisRaw/Export%20default.xlsx). Currently only xlsx files in the from provided by the Orbis database are supported.
 
 ## Usage
 To process data and calculate EM measures follow these steps:
