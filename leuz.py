@@ -1,8 +1,6 @@
 from datetime import datetime
 import jsonpickle, json
 import numpy as np
-import _modules.listObject as listObject
-import _modules.statusBar as statusBar
 from collections import defaultdict
 import scipy.stats
 from argparse import ArgumentParser
@@ -27,7 +25,7 @@ def EM2(sortedSectors: dict) -> dict:
     # get company level deltaAccruals & deltaCFOs for each sector & add them together to get sector level timeline
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
-            # if company has NaN value in timeline omit company dataset for the calculation
+            # if company has NaN value in timeline omit company dataset from the calculation
             if not np.isnan(entry.deltaAccruals).any() and not np.isnan(entry.deltaCFO).any():
                 EM2bySector[sectorID]['deltaAccrruals'] = np.concatenate((EM2bySector[sectorID]['deltaAccrruals'], entry.deltaAccruals), axis=None)
                 EM2bySector[sectorID]['deltaCFO'] = np.concatenate((EM2bySector[sectorID]['deltaCFO'], entry.deltaCFO), axis=None)
@@ -86,7 +84,7 @@ def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
     return EM4bySector
 
 
-def readJSON(JSONfile: str) -> list:
+def readJSON(JSONfile: str) -> dict:
     f = open(JSONfile)
     JSONstring = f.read()
     data = jsonpickle.decode(JSONstring)
@@ -120,11 +118,11 @@ def writeToFile(oFilePath: str, data: list) -> bool:
     except:
         return False
 
-def getArgs() -> tuple[str,str,bool]:
+def getArgs():
     parser = ArgumentParser(description='Calculates EM measures from serialized JSON data.')
     parser.add_argument("-i", "--ifile", dest="iFilePath", default='./_data/company_objects.json', type=str, help="Specify json input file path. Default: %(default)s")
     parser.add_argument("-o", "--ofile", dest="oFilePath", default=f'./_results/run_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json', type=str, help="Specify json output file path. Default: %(default)s")
-    parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/_misc/sectors_selection.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (all sectors) %(default)s")
+    parser.add_argument("-s", "--sfile", dest="sFilePath", default='./_data/_misc/sectors_selection.json', type=str, help="Specify json file path to pass a list of sectors to calculate. Default: (selected sectors) %(default)s")
     parser.add_argument("-p", dest="em4perc", default=1, type=int, help="Specify percentile denominator for EM4 'small' profits/loss. This has to be an integer. Default: %(default)s")
     parser.add_argument("-em", dest="ems", choices=['all', '23', '1', '2', '3', '4'], default='all', help="Specify which EM measures you want to calculate. all: EM1-4; 23: EM2-3; 1: EM1; 2: EM2; 3: EM3, 4: EM4. Default: %(default)s")
     parser.add_argument("-v", dest="verbosity", default=False, action='store_true', help="(flag) Verbosity level")
@@ -147,7 +145,7 @@ if __name__ == '__main__':
 
     # classify entrys by sectors, multiple NAICE entrys result in multiple sector classifications
     sortedSectors, secEntryCount = sortSectors(objList, sectors)
-
+ 
     match ems:
         case "all":
             resEM1 = EM1(sortedSectors)

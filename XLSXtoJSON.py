@@ -3,7 +3,6 @@ import jsonpickle
 import _modules.listObject as listObject
 import _modules.statusBar as statusBar
 from argparse import ArgumentParser
-from collections.abc import Generator
 import numpy as np
 from pandas import read_excel, DataFrame
 from datetime import datetime
@@ -44,12 +43,12 @@ def yieldObject(rowData: DataFrame, years: list[int, int], numDropped: int, NaN:
                     case 'accept':
                         dataCategories[dataCategory]=[res if (res:=catch(lambda: float(yearval))) else np.nan for yearval in years]
                     case 'convert':
-                        if dataCategory not in ['Income Tax Payable\nth USD ', 'Total Current Liabilities\nth USD ']:
+                        if dataCategory not in ['Income Tax Payable\nth USD ', 'Other Short Term Debt\nth USD ']:
                             dataCategories[dataCategory]=[res if (res:=catch(lambda: float(yearval))) else np.nan for yearval in years]
                         else:
                             dataCategories[dataCategory]=[res if (res:=catch(lambda: float(yearval))) else 0.00 for yearval in years]
                     case 'perpetuate':
-                        if dataCategory not in ['Income Tax Payable\nth USD ', 'Total Current Liabilities\nth USD ']:
+                        if dataCategory not in ['Income Tax Payable\nth USD ', 'Other Short Term Debt\nth USD ']:
                             dataCategories[dataCategory]=[res if (res:=catch(lambda: float(yearval))) else np.nan for yearval in years]
                         else:
                             # could be faster

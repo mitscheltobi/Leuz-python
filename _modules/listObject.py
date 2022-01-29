@@ -20,10 +20,10 @@ class entry:
     self.CFO = self.EBIT[:-1] - self.Accruals
     # EM 1 - scaled by lagged total assets; timeframe = yearsSupplied - 1
     ebitScaled = self.EBIT[:-1]/self.totAssets[1:]
-    assetsScaled = self.CFO/self.totAssets[1:]
+    CFOscaled = self.CFO/self.totAssets[1:]
     self.stdEBIT = np.nanstd(ebitScaled)
-    self.stdCFO = np.nanstd(assetsScaled)
-    # EM 2 - scaled by lagged total assets; timeframe = yearsSupplied - 2 beacuase accruals = yearsSupplied - 1, deltaAccruals = yearsSupplied - 2
+    self.stdCFO = np.nanstd(CFOscaled)
+    # EM 2 - scaled by lagged total assets; timeframe = yearsSupplied - 2 beacause accruals = yearsSupplied - 1, deltaAccruals = yearsSupplied - 2
     self.deltaAccruals = self.delta(self.Accruals)/self.totAssets[1:-1]
     self.deltaCFO = self.delta(self.CFO)/self.totAssets[1:-1]
     # EM 3 remove the last year to bring EM measures to same timeframe; timeframe = yearsSupplied - 2
@@ -54,14 +54,14 @@ class entry:
   'shortTermDebt': {self.shortTermDebt},
   'taxPayable': {self.taxPayable},
   'Depreciation': {self.Depreciation},
-  'Accruals': {self.Accruals},
-  'CFO': {self.CFO}
-  'stdEBIT': {self.stdEBIT},
-  'stdCFO': {self.stdCFO},
-  'deltaCFO': {self.deltaCFO},
-  'deltaAccruals': {self.deltaAccruals},
-  'profits': {self.profits},
-  'losses': {self.losses}
+  '_calc.Accruals': {self.Accruals},
+  '_calc.CFO': {self.CFO}
+  '_calc.stdEBIT': {self.stdEBIT},
+  '_calc.stdCFO': {self.stdCFO},
+  '_calc.deltaCFO': {self.deltaCFO},
+  '_calc.deltaAccruals': {self.deltaAccruals},
+  '_calc.profits': {self.profits},
+  '_calc.losses': {self.losses}
 }}"""
 
   def __repr__(self):
@@ -80,12 +80,12 @@ class entry:
   'shortTermDebt': {self.shortTermDebt},
   'taxPayable': {self.taxPayable},
   'Depreciation': {self.Depreciation},
-  'Accruals': {self.Accruals},
-  'CFO': {self.CFO}
-  'stdEBIT': {self.stdEBIT},
-  'stdCFO': {self.stdCFO},
-  'deltaCFO': {self.deltaCFO},
-  'deltaAccruals': {self.deltaAccruals},
-  'profits': {self.profits},
-  'losses': {self.losses}
+  '_calc.Accruals': {self.Accruals},
+  '_calc.CFO': {self.CFO}
+  '_calc.stdEBIT': {self.stdEBIT},
+  '_calc.stdCFO': {self.stdCFO},
+  '_calc.deltaCFO': {self.deltaCFO},
+  '_calc.deltaAccruals': {self.deltaAccruals},
+  '_calc.profits': {self.profits},
+  '_calc.losses': {self.losses}
 }}"""

@@ -1,0 +1,42 @@
+{
+    "Accommodation and Food Services": {
+        "EM2": -0.499,
+        "EM3": 0.411,
+        "sampleSizeCompanies": 81
+    },
+    "Health Care and Social Assistance": {
+        "EM2": -0.574,
+        "EM3": 0.464,
+        "sampleSizeCompanies": 90
+    },
+    "Information": {
+        "EM2": -0.628,
+        "EM3": 0.588,
+        "sampleSizeCompanies": 456
+    },
+    "Manufacturing": {
+        "EM2": -0.589,
+        "EM3": 0.344,
+        "sampleSizeCompanies": 1657
+    },
+    "Mining, Quarrying, and Oil and Gas Extraction": {
+        "EM2": -0.558,
+        "EM3": 0.504,
+        "sampleSizeCompanies": 261
+    },
+    "Professional, Scientific, and Technical Services": {
+        "EM2": -0.384,
+        "EM3": 0.235,
+        "sampleSizeCompanies": 498
+    },
+    "Real Estate and Rental and Leasing": {
+        "EM2": -0.773,
+        "EM3": 0.575,
+        "sampleSizeCompanies": 255
+    },
+    "Utilities": {
+        "EM2": -0.894,
+        "EM3": 0.464,
+        "sampleSizeCompanies": 88
+    }
+}
