@@ -14,12 +14,12 @@ To process data and calculate EM measures follow these steps:
 
 ### Timeframe definition
 Please note that the calculations of the EM measures correspond to different timeframes, as some calculations need to drop some years because they need to calculate deltas.
-- For EM1 & EM4 the result will reflect the timeframe supplied (by commandline arguments -fy & -ly) -1. So in the case of -fy 2012 and -ly 2020 -> EM1 & EM4 timeframe = 2013-2020 (inclusive)
-- For EM2 & EM3 the result will reflect the timeframe supplied -2. So in the case -fy 2012 -ly 2020 -> EM1 & EM4 timeframe = 2014-2020 (inclusive)
-- To just get the result for the year 2015 you must therefore supply -fy 2014 -ly 2015 for EM1 & EM4 (although it might not make sense to calculate these measures for just 1 year) and -fy 2013 -ly 2015 for EM2 & EM3.
+- For EM1 & EM4 the result will reflect the timeframe supplied (by commandline arguments -fy & -ly) -1. So in the case of `-fy 2012` and `-ly 2020` -> EM1 & EM4 timeframe = 2013-2020 (inclusive)
+- For EM2 & EM3 the result will reflect the timeframe supplied -2. So in the case `-fy 2012 -ly 2020` -> EM1 & EM4 timeframe = 2014-2020 (inclusive)
+- To just get the result for the year 2015 you must therefore supply `-fy 2014 -ly 2015` for EM1 & EM4 (although it might not make sense to calculate these measures for just 1 year) and `-fy 2013 -ly 2015` for EM2 & EM3.
 
 ## Dependencies
-Please use Python 3.10 or later to run scripts.
+Please use [**Python 3.10 or later**](https://www.python.org/downloads/) to run scripts.
 This project uses a number of built-in python modules as well as the following 3rd party modules:
   1. jsonpickle // https://github.com/jsonpickle/jsonpickle
   2. numpy // https://github.com/numpy/numpy
