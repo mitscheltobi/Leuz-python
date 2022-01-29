@@ -11,7 +11,11 @@ Make sure to follow include all neccassary data for the calculation. To see rele
 To process data and calculate EM measures follow these steps:
   1. use [XLSXtoJSON.py](XLSXtoJSON.py) to convert your data to JSON serialized python objects. Use `CSVtoJSON.py -h` for help on arguments and flags. You can automatically save your file and execute the script that calculates the EM measures by adding the flag -c when executing the script. 
   2. You can also execute [leuz.py](leuz.py) manually afterwards to calculate the EM measures for your specified data & timeframe. Upon completion results will be printed to the terminal and saved to [/_results](/_results). Use `leuz.py -h` for help on arguments and flags.
-  
+  (3.) Please note that the calculations of the EM measures correspond to different timeframes, as some calculations need to drop some years becuase they need to calculate deltas.
+  For EM1&EM4 the result will reflect the timeframe supplied (by commandline arguments -fy & -ly) -1. So in the case -fy 2012 -ly 2020 -> EM1 & EM4 timeframe = 2013-2020
+  For EM2&EM3 the result will reflect the timeframe supplied -2. So in the case -fy 2012 -ly 2020 -> EM1 & EM4 timeframe = 2014-2020
+  To just get the result for the year 2015 you must therefore supply -fy 2014 -ly 2015 for EM1 & EM4 (although it might not make sense to calculate these measures for just 1 year) and -fy 2013 -ly 2015 for EM2&EM3.
+
 ## Dependencies
 Please use Python 3.10 or later to run scripts.
 This project uses a number of built-in python modules as well as the following 3rd party modules:
