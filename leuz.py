@@ -6,19 +6,19 @@ import scipy.stats
 from argparse import ArgumentParser
 
 def EM1(sortedSectors: dict) -> dict:
-    EM1byFirm = defaultdict(list)
+    EM1measuresBySector = defaultdict(lambda: {'EBIT': [], 'CFO': []})
     # get EM1 ratio on firm level for each sector
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
-            EM1byFirm[sectorID].append(entry.stdEBIT/entry.stdCFO)
-    EM1ratios = dict(EM1byFirm)
+            EM1measuresBySector[sectorID]['EBIT'].append(entry.stdEBIT)
+            EM1measuresBySector[sectorID]['CFO'].append(entry.stdCFO)
+    EM1measuresBySector = dict(EM1measuresBySector)
 
-    # get median on sector level
-    EM1bySector = defaultdict(float)
-    for sectorID, EM1s in EM1ratios.items():
-        EM1sNumpy = np.array(EM1s)
-        EM1bySector[sectorID] = np.median(EM1sNumpy[~ np.isnan(EM1sNumpy)])
-    return dict(EM1bySector)
+    EM1s = defaultdict(float)
+    for sectorID, sectorData in EM1measuresBySector.items():
+        EM1s[sectorID] = np.nanmedian(sectorData['EBIT']) / np.nanmedian(sectorData['CFO'])
+
+    return dict(EM1s)
 
 def EM2(sortedSectors: dict) -> dict:
     EM2bySector = defaultdict(lambda: defaultdict(lambda:np.empty(0)))
@@ -43,21 +43,20 @@ def EM2(sortedSectors: dict) -> dict:
     return EM2bySector
 
 def EM3(sortedSectors: dict) -> dict:
-    # same as EM1 with abs(acc)/abs(CFO)
-    EM3byFirm = defaultdict(list)
-    # get EM3 ratio on firm level per year for each sector
+
+    EM3measuresBySector = defaultdict(lambda: {'absAccruals': [], 'absCFO': []})
+    # get EM1 ratio on firm level for each sector
     for sectorID, entries in sortedSectors.items():
         for entry in entries:
-            EM3byFirm[sectorID].append(entry.absAccruals/entry.absCFO)
-    EM3ratios = dict(EM3byFirm)
+            EM3measuresBySector[sectorID]['absAccruals'].append(entry.absAccruals)
+            EM3measuresBySector[sectorID]['absCFO'].append(entry.absCFO)
+    EM3measuresBySector = dict(EM3measuresBySector)
 
-    # get median of sector level year ratios
-    EM3bySector = defaultdict(float)
-    for sectorID, EM3s in EM3ratios.items():
-        EM3sNumpy = np.array(EM3s)
-        EM3bySector[sectorID] = np.median(EM3sNumpy[~ np.isnan(EM3sNumpy)])
+    EM3s = defaultdict(float)
+    for sectorID, sectorData in EM3measuresBySector.items():
+        EM3s[sectorID] = np.nanmedian(sectorData['absAccruals']) / np.nanmedian(sectorData['absCFO'])
 
-    return dict(EM3bySector)
+    return dict(EM3s)
 
 def EM4(sortedSectors: dict, percentile: int = 1) -> dict:
     EM4bySector = defaultdict(lambda: defaultdict(lambda: np.empty(0)))
