@@ -10,28 +10,28 @@
         "sampleSizeCompanies": 90
     },
     "Information": {
-        "EM2": -0.577,
-        "EM3": 0.561,
+        "EM2": -0.581,
+        "EM3": 0.577,
         "sampleSizeCompanies": 456
     },
     "Manufacturing": {
-        "EM2": -0.58,
-        "EM3": 0.45,
+        "EM2": -0.579,
+        "EM3": 0.449,
         "sampleSizeCompanies": 1657
     },
     "Mining, Quarrying, and Oil and Gas Extraction": {
-        "EM2": -0.217,
-        "EM3": 1.783,
+        "EM2": -0.234,
+        "EM3": 1.742,
         "sampleSizeCompanies": 261
     },
     "Professional, Scientific, and Technical Services": {
         "EM2": -0.515,
-        "EM3": 0.315,
+        "EM3": 0.307,
         "sampleSizeCompanies": 498
     },
     "Real Estate and Rental and Leasing": {
-        "EM2": -0.744,
-        "EM3": 0.632,
+        "EM2": -0.746,
+        "EM3": 0.631,
         "sampleSizeCompanies": 255
     },
     "Utilities": {

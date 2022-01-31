@@ -6,16 +6,16 @@
     },
     "Health Care and Social Assistance": {
         "EM2": -0.589,
-        "EM3": 0.463,
+        "EM3": 0.492,
         "sampleSizeCompanies": 90
     },
     "Information": {
-        "EM2": -0.593,
-        "EM3": 0.544,
+        "EM2": -0.596,
+        "EM3": 0.568,
         "sampleSizeCompanies": 456
     },
     "Manufacturing": {
-        "EM2": -0.566,
+        "EM2": -0.57,
         "EM3": 0.325,
         "sampleSizeCompanies": 1657
     },
@@ -26,16 +26,16 @@
     },
     "Professional, Scientific, and Technical Services": {
         "EM2": -0.53,
-        "EM3": 0.233,
+        "EM3": 0.224,
         "sampleSizeCompanies": 498
     },
     "Real Estate and Rental and Leasing": {
         "EM2": -0.825,
-        "EM3": 0.554,
+        "EM3": 0.555,
         "sampleSizeCompanies": 255
     },
     "Utilities": {
-        "EM2": -0.71,
+        "EM2": -0.674,
         "EM3": 0.416,
         "sampleSizeCompanies": 88
     }
